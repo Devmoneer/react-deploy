@@ -27,7 +27,10 @@ const OwnerDashboard = () => {
       expenses: 'Expenses',
       profit: 'Profit',
       recentTransactions: 'Recent Transactions',
-      addTransaction: 'Add Transaction'
+      addTransaction: 'Add Transaction',
+      role: 'Role',
+      owner: 'Company Owner',
+      accountant: 'Accountant'
     },
     arabic: {
       welcome: 'مرحبًا بكم في ACCDPU',
@@ -44,7 +47,10 @@ const OwnerDashboard = () => {
       expenses: 'المصروفات',
       profit: 'الربح',
       recentTransactions: 'المعاملات الأخيرة',
-      addTransaction: 'إضافة معاملة'
+      addTransaction: 'إضافة معاملة',
+      role: 'الدور',
+      owner: 'مالك الشركة',
+      accountant: 'محاسب'
     },
     sorani: {
       welcome: 'بەخێربێن بۆ ACCDPU',
@@ -61,7 +67,10 @@ const OwnerDashboard = () => {
       expenses: 'خەرجی',
       profit: 'قازانج',
       recentTransactions: 'مامەڵەکانی دوایین',
-      addTransaction: 'مامەڵەی زیاد بکە'
+      addTransaction: 'مامەڵەی زیاد بکە',
+      role: 'ڕۆڵ',
+      owner: 'خاوەن کۆمپانیا',
+      accountant: 'ژمێریار'
     }
   };
 

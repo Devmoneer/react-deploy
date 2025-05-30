@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../App.css';
+import './App.css';
 
 const ErrorPage = () => {
   const navigate = useNavigate();
-  const [language, setLanguage] = ('english');
+  const [language, setLanguage] = useState('english');
 
   const translations = {
     english: {

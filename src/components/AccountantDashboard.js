@@ -24,7 +24,10 @@ const AccountantDashboard = () => {
       transactions: 'Transactions',
       manage: 'Manage Transactions',
       add: 'Add New',
-      approve: 'Approve Payments'
+      approve: 'Approve Payments',
+      role: 'Role',
+      owner: 'Company Owner',
+      accountant: 'Accountant'
     },
     arabic: {
       welcome: 'لوحة المحاسب',
@@ -38,7 +41,10 @@ const AccountantDashboard = () => {
       transactions: 'المعاملات',
       manage: 'إدارة المعاملات',
       add: 'إضافة جديدة',
-      approve: 'الموافقة على المدفوعات'
+      approve: 'الموافقة على المدفوعات',
+      role: 'الدور',
+      owner: 'مالك الشركة',
+      accountant: 'محاسب'
     },
     sorani: {
       welcome: 'داشبۆردی ژمێریار',
@@ -52,7 +58,10 @@ const AccountantDashboard = () => {
       transactions: 'مامەڵەکان',
       manage: 'بەڕێوەبردنی مامەڵەکان',
       add: 'زیادکردنی نوێ',
-      approve: 'پەسەندکردنی پارەدانەکان'
+      approve: 'پەسەندکردنی پارەدانەکان',
+      role: 'ڕۆڵ',
+      owner: 'خاوەن کۆمپانیا',
+      accountant: 'ژمێریار'
     }
   };
 
@@ -116,7 +125,7 @@ const AccountantDashboard = () => {
             <h2>{t.profile}</h2>
             <p><strong>{t.username}:</strong> {userData.username}</p>
             <p><strong>{t.email}:</strong> {userData.email}</p>
-            <p><strong>Role:</strong> {userData.role === 'owner' ? t.owner : t.accountant}</p>
+            <p><strong>{t.role}:</strong> {userData.role === 'owner' ? t.owner : t.accountant}</p>
           </div>
         )}
         
