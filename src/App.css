@@ -1,8 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&display=swap');
 
-body {
-    font-family: 'noto kufi arabic', sans-serif;
-}
+
 
 
 
@@ -14,6 +12,7 @@ body {
   min-height: 100vh;
   background-color: white; 
   font-family: Arial, sans-serif;
+  font-family: 'noto kufi arabic', sans-serif;
 }
 
 .auth-box {
@@ -60,6 +59,7 @@ body {
   font-size: 1rem;
   cursor: pointer;
   margin-top: 1rem;
+  font-family: 'noto kufi arabic', sans-serif;
 }
 
 .auth-button:hover {
@@ -70,6 +70,7 @@ body {
   margin-top: 1.5rem;
   display: flex;
   justify-content: space-between;
+  font-family: 'noto kufi arabic', sans-serif;
 }
 
 .link-button {
@@ -78,6 +79,7 @@ body {
   color: #2e7d32;
   cursor: pointer;
   font-size: 0.9rem;
+  font-family: 'noto kufi arabic', sans-serif;
 }
 
 .link-button:hover {
@@ -87,6 +89,7 @@ body {
 .error-message {
   color: #d32f2f;
   margin-bottom: 1rem;
+  font-family: 'noto kufi arabic', sans-serif;
 }
 
 .language-selector {
@@ -104,4 +107,33 @@ body {
 
 .language-selector button:hover {
   background: #bdbdbd;
+}
+
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+}
+
+.error-content {
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.error-content h1 {
+  color: #dc3545;
+  margin-bottom: 20px;
+}
+
+.error-content p {
+  margin-bottom: 30px;
+  font-size: 1.1rem;
 }
