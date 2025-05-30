@@ -14,7 +14,6 @@ const Register = () => {
   const [success, setSuccess] = useState('');
   const [language, setLanguage] = useState('english');
   const [isLoading, setIsLoading] = useState(false);
-  const [role, setRole] = useState('owner');
   const navigate = useNavigate();
 
   const translations = {
@@ -30,10 +29,6 @@ const Register = () => {
       firebaseError: 'Registration failed',
       success: 'Registration successful! Please check your email for verification.',
       loading: 'Processing...',
-      role: 'Role',
-      owner: 'Company Owner',
-      accountant: 'Accountant',
-      selectRole: 'Select your role',
       welcome: 'Get Started',
       subtitle: 'Create an account to access all features'
     },
@@ -49,10 +44,6 @@ const Register = () => {
       firebaseError: 'فشل التسجيل',
       success: 'تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني لإتمام التحقق.',
       loading: 'جاري المعالجة...',
-      role: 'الدور',
-      owner: 'مالك الشركة',
-      accountant: 'محاسب',
-      selectRole: 'اختر دورك',
       welcome: 'ابدأ رحلتك',
       subtitle: 'أنشئ حسابًا للوصول إلى جميع الميزات'
     },
@@ -68,10 +59,6 @@ const Register = () => {
       firebaseError: 'تۆمارکردن سەرنەکەوت',
       success: 'تۆمارکردن سەرکەوتوو بوو! تکایە بۆ تەواوکردنی پشتڕاستکردنەوە بچۆرە ئیمەیلەکەت.',
       loading: 'لە پڕۆسەکردندایە...',
-      role: 'ڕۆڵ',
-      owner: 'خاوەن کۆمپانیا',
-      accountant: 'ژمێریار',
-      selectRole: 'ڕۆڵەکەت هەڵبژێرە',
       welcome: 'دەستپێبکە',
       subtitle: 'هەژمارێک درووست بکە بۆ چوونە ناو هەموو تایبەتمەندییەکان'
     }
@@ -83,25 +70,24 @@ const Register = () => {
       setError(translations[language].error);
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(userCredential.user);
-      
+
       await setDoc(doc(db, "users", userCredential.user.uid), {
         username,
         email,
-        role,
         emailVerified: false,
         createdAt: new Date()
       });
-      
+
       setSuccess(translations[language].success);
       setIsLoading(false);
-      
+
       setTimeout(() => {
         navigate('/login');
       }, 3000);
@@ -183,20 +169,6 @@ const Register = () => {
                 placeholder="••••••••"
                 required 
               />
-            </div>
-
-            <div className="form-group">
-              <label>{t.role}</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-                className="role-select"
-              >
-                <option value="" disabled>{t.selectRole}</option>
-                <option value="owner">{t.owner}</option>
-                <option value="accountant">{t.accountant}</option>
-              </select>
             </div>
             
             <button 

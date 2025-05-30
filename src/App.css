@@ -1,152 +1,39 @@
+/* Base Styles */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap');
 
-
-
-
-
-
-.auth-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: white; 
-  font-family: Arial, sans-serif;
-  font-family: 'noto kufi arabic', sans-serif;
+:root {
+  --primary-color: #4f46e5;
+  --primary-hover: #4338ca;
+  --error-color: #dc2626;
+  --success-color: #16a34a;
+  --text-color: #1e293b;
+  --subtext-color: #64748b;
+  --border-color: #e2e8f0;
+  --background-color: #f8fafc;
 }
 
-.auth-box {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-  text-align: center;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.auth-box h2 {
-  color: #2e7d32;
-  margin-bottom: 1.5rem;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 
+               'Noto Sans Arabic', 'Noto Kufi Arabic', sans-serif;
 }
 
-.form-group {
-  margin-bottom: 1rem;
+/* Direction Classes */
+.ltr {
+  direction: ltr;
   text-align: left;
 }
 
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #555;
+.rtl {
+  direction: rtl;
+  text-align: right;
 }
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.auth-button {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #2e7d32;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 1rem;
-  font-family: 'noto kufi arabic', sans-serif;
-}
-
-.auth-button:hover {
-  background-color: #1b5e20;
-}
-
-.auth-links {
-  margin-top: 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  font-family: 'noto kufi arabic', sans-serif;
-}
-
-.link-button {
-  background: none;
-  border: none;
-  color: #2e7d32;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-family: 'noto kufi arabic', sans-serif;
-}
-
-.link-button:hover {
-  text-decoration: underline;
-}
-
-.error-message {
-  color: #d32f2f;
-  margin-bottom: 1rem;
-  font-family: 'noto kufi arabic', sans-serif;
-}
-
-.language-selector {
-  margin-bottom: 1rem;
-}
-
-.language-selector button {
-  margin: 0 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background: #e0e0e0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.language-selector button:hover {
-  background: #bdbdbd;
-}
-
-
-.error-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  text-align: center;
-  padding: 20px;
-}
-
-.error-content {
-  max-width: 500px;
-  padding: 30px;
-  border-radius: 8px;
-  background-color: #f8f9fa;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.error-content h1 {
-  color: #dc3545;
-  margin-bottom: 20px;
-}
-
-.error-content p {
-  margin-bottom: 30px;
-  font-size: 1.1rem;
-}
-
-.loading-screen {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  font-size: 1.5rem;
-  color: #2e7d32;
-}
-
 
 /* Auth Page Layout */
 .auth-page-container {
@@ -160,12 +47,12 @@
   justify-content: center;
   align-items: center;
   padding: 2rem;
-  background-color: #f8fafc;
+  background-color: var(--background-color);
 }
 
 .auth-illustration {
   flex: 1;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  background: linear-gradient(135deg, var(--primary-color), #7c3aed);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -214,12 +101,12 @@
 .auth-header h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-color);
   margin-bottom: 0.5rem;
 }
 
 .subtitle {
-  color: #64748b;
+  color: var(--subtext-color);
   font-size: 0.95rem;
 }
 
@@ -236,7 +123,7 @@
   border: none;
   padding: 0.25rem 0.5rem;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--subtext-color);
   cursor: pointer;
   border-radius: 4px;
   transition: all 0.2s;
@@ -244,7 +131,7 @@
 
 .language-selector button.active {
   background-color: #e2e8f0;
-  color: #4f46e5;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
@@ -264,16 +151,17 @@
 .form-group label {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #334155;
+  color: var(--text-color);
 }
 
 .form-group input,
 .form-group select {
   padding: 0.75rem 1rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 0.95rem;
   transition: all 0.2s;
+  font-family: inherit;
 }
 
 .form-group input:focus,
@@ -281,6 +169,16 @@
   outline: none;
   border-color: #a5b4fc;
   box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.3);
+}
+
+/* RTL Form Adjustments */
+.rtl .form-group input,
+.rtl .form-group select {
+  text-align: right;
+}
+
+.rtl .role-select {
+  background-position: left 1rem center;
 }
 
 .role-select {
@@ -304,15 +202,16 @@
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
+  font-family: inherit;
 }
 
 .auth-button.primary {
-  background-color: #4f46e5;
+  background-color: var(--primary-color);
   color: white;
 }
 
 .auth-button.primary:hover {
-  background-color: #4338ca;
+  background-color: var(--primary-hover);
 }
 
 .auth-button.loading {
@@ -323,13 +222,14 @@
 .text-button {
   background: none;
   border: none;
-  color: #4f46e5;
+  color: var(--primary-color);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   transition: all 0.2s;
+  font-family: inherit;
 }
 
 .text-button:hover {
@@ -349,23 +249,30 @@
   justify-content: center;
 }
 
+/* RTL Footer Adjustments */
+.rtl .auth-links {
+  flex-direction: row-reverse;
+}
+
 /* Messages */
 .error-message {
-  color: #dc2626;
+  color: var(--error-color);
   background-color: #fee2e2;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   font-size: 0.9rem;
   margin-bottom: 1rem;
+  text-align: center;
 }
 
 .success-message {
-  color: #16a34a;
+  color: var(--success-color);
   background-color: #dcfce7;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   font-size: 0.9rem;
   margin-bottom: 1rem;
+  text-align: center;
 }
 
 /* Spinner */
@@ -397,5 +304,10 @@
   .auth-box {
     padding: 1.5rem;
     box-shadow: none;
+  }
+  
+  .illustration-overlay {
+    left: 2rem;
+    bottom: 2rem;
   }
 }
