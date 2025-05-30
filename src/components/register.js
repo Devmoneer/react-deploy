@@ -8,6 +8,7 @@ import '../App.css';
 const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('accountant');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,6 +24,7 @@ const Register = () => {
       email: 'Email',
       password: 'Password',
       confirm: 'Confirm Password',
+      role: 'Role',
       register: 'Register',
       login: 'Already have an account? Login',
       error: 'Passwords do not match',
@@ -38,6 +40,7 @@ const Register = () => {
       email: 'البريد الإلكتروني',
       password: 'كلمة المرور',
       confirm: 'تأكيد كلمة المرور',
+      role: 'الدور',
       register: 'تسجيل',
       login: 'هل لديك حساب بالفعل؟ تسجيل الدخول',
       error: 'كلمات المرور غير متطابقة',
@@ -53,6 +56,7 @@ const Register = () => {
       email: 'ئیمەیل',
       password: 'وشەی نهێنی',
       confirm: 'پشتڕاستکردنەوەی وشەی نهێنی',
+      role: 'ڕۆڵ',
       register: 'تۆمارکردن',
       login: 'هەژمارت هەیە؟ چوونەژوورەوە',
       error: 'وشەی نهێنیەکان ناگونجێن',
@@ -81,6 +85,7 @@ const Register = () => {
       await setDoc(doc(db, "users", userCredential.user.uid), {
         username,
         email,
+        role,
         emailVerified: false,
         createdAt: new Date()
       });
@@ -147,6 +152,19 @@ const Register = () => {
                 placeholder="example@email.com"
                 required 
               />
+            </div>
+
+            {/* Role Selection */}
+            <div className="form-group">
+              <label>{t.role}</label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+              >
+                <option value="accountant">Accountant</option>
+                <option value="owner">Company Owner</option>
+              </select>
             </div>
             
             <div className="form-group">

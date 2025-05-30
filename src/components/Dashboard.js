@@ -1,24 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { auth, db } from '../firebase';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, addDoc, updateDoc, query, where, deleteDoc } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import '../dashboard.css';
-import { FiPieChart, FiDollarSign, FiFileText, FiSettings, FiUser, FiLogOut, FiPlus } from 'react-icons/fi';
+import { FiPieChart, FiDollarSign, FiFileText, FiSettings, FiUser, FiLogOut, FiPlus, FiTrash2, FiEdit } from 'react-icons/fi';
 import { FaUserShield, FaUserTie } from 'react-icons/fa';
 
 const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [accountingData, setAccountingData] = useState([]);
+  const [users, setUsers] = useState([]);
   const [language, setLanguage] = useState('english');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showSettings, setShowSettings] = useState(false);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [newRole, setNewRole] = useState('');
+  const [newUser, setNewUser] = useState({
+    email: '',
+    username: '',
+    role: 'accountant',
+    password: ''
+  });
   const navigate = useNavigate();
 
   const translations = {
     english: {
       welcome: 'Welcome to ACCDPU',
+      ownerWelcome: 'Owner Dashboard',
+      accountantWelcome: 'Accountant Dashboard',
       profile: 'Company Profile',
       username: 'Name',
       email: 'Email',
@@ -44,7 +54,16 @@ const Dashboard = () => {
       balanceSheet: 'Balance Sheet',
       incomeStatement: 'Income Statement',
       taxReport: 'Tax Report',
-      manageUsers: 'Manage Users'
+      manageUsers: 'Manage Users',
+      addUser: 'Add User',
+      delete: 'Delete',
+      edit: 'Edit',
+      usersList: 'Users List',
+      password: 'Password',
+      addNewUser: 'Add New Accountant',
+      userAdded: 'User added successfully',
+      userDeleted: 'User deleted successfully',
+      userUpdated: 'User updated successfully'
     },
     arabic: {
       welcome: 'مرحبًا بكم في ACCDPU',
@@ -73,7 +92,16 @@ const Dashboard = () => {
       balanceSheet: 'الميزانية العمومية',
       incomeStatement: 'بيان الدخل',
       taxReport: 'تقرير الضرائب',
-      manageUsers: 'إدارة المستخدمين'
+      manageUsers: 'إدارة المستخدمين',
+      addUser: 'إضافة مستخدم',
+      delete: 'حذف',
+      edit: 'تعديل',
+      usersList: 'قائمة المستخدمين',
+      password: 'كلمة المرور',
+      addNewUser: 'إضافة محاسب جديد',
+      userAdded: 'تمت إضافة المستخدم بنجاح',
+      userDeleted: 'تم حذف المستخدم بنجاح',
+      userUpdated: 'تم تحديث المستخدم بنجاح'
     },
     sorani: {
       welcome: 'بەخێربێن بۆ ACCDPU',
@@ -102,7 +130,16 @@ const Dashboard = () => {
       balanceSheet: 'باڵانسی پارە',
       incomeStatement: 'ڕاپۆرتی داهات',
       taxReport: 'ڕاپۆرتی باج',
-      manageUsers: 'بەڕێوەبردنی بەکارهێنەران'
+      manageUsers: 'بەڕێوەبردنی بەکارهێنەران',
+      addUser: 'زیادکردنی بەکارهێنەر',
+      delete: 'سڕینەوە',
+      edit: 'دەستکاری',
+      usersList: 'لیستی بەکارهێنەران',
+      password: 'پاسوۆرد',
+      addNewUser: 'زیادکردنی ژمێریاری نوێ',
+      userAdded: 'بەکارهێنەر بە سەرکەوتوویی زیادکرا',
+      userDeleted: 'بەکارهێنەر بە سەرکەوتوویی سڕایەوە',
+      userUpdated: 'بەکارهێنەر بە سەرکەوتوویی نوێکرایەوە'
     }
   };
 
@@ -113,11 +150,17 @@ const Dashboard = () => {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           setUserData(userDoc.data());
-          setNewRole(userDoc.data().role);
         }
         const querySnapshot = await getDocs(collection(db, "transactions"));
         const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setAccountingData(data);
+
+        if (userDoc.data().role === 'owner') {
+          const usersQuery = query(collection(db, "users"), where("role", "==", "accountant"));
+          const usersSnapshot = await getDocs(usersQuery);
+          const usersData = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setUsers(usersData);
+        }
       }
     };
     fetchData();
@@ -140,13 +183,51 @@ const Dashboard = () => {
   };
 
   const handleSaveRole = async () => {
-    // In a real app, you would update the role in Firebase here
-    setUserData({ ...userData, role: newRole });
-    setShowSettings(false);
+    try {
+      await updateDoc(doc(db, "users", auth.currentUser.uid), { role: newRole });
+      setUserData({ ...userData, role: newRole });
+      setShowSettings(false);
+      alert(translations[language].userUpdated);
+    } catch (error) {
+      console.error("Error updating role: ", error);
+    }
   };
 
-  const totals = calculateTotals();
-  const t = translations[language];
+  const handleAddUser = async () => {
+    try {
+      // In a real app, you would create the user with Firebase Auth first
+      // then add to Firestore with the same UID
+      await addDoc(collection(db, "users"), {
+        email: newUser.email,
+        username: newUser.username,
+        role: newUser.role,
+        createdAt: new Date()
+      });
+      
+      setUsers([...users, { ...newUser, id: Date.now().toString() }]);
+      setNewUser({
+        email: '',
+        username: '',
+        role: 'accountant',
+        password: ''
+      });
+      setShowAddUserModal(false);
+      alert(translations[language].userAdded);
+    } catch (error) {
+      console.error("Error adding user: ", error);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    try {
+      // In a real app, you would also delete from Firebase Auth
+      await deleteDoc(doc(db, "users", userId));
+      setUsers(users.filter(user => user.id !== userId));
+      alert(translations[language].userDeleted);
+    } catch (error) {
+      console.error("Error deleting user: ", error);
+    }
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -155,22 +236,22 @@ const Dashboard = () => {
           <>
             <div className="dashboard-cards">
               <div className="card revenue-card">
-                <h3>{t.revenue}</h3>
-                <p>${totals.revenue.toLocaleString()}</p>
+                <h3>{translations[language].revenue}</h3>
+                <p>${calculateTotals().revenue.toLocaleString()}</p>
                 <div className="card-icon">
                   <FiDollarSign />
                 </div>
               </div>
               <div className="card expenses-card">
-                <h3>{t.expenses}</h3>
-                <p>${totals.expenses.toLocaleString()}</p>
+                <h3>{translations[language].expenses}</h3>
+                <p>${calculateTotals().expenses.toLocaleString()}</p>
                 <div className="card-icon">
                   <FiDollarSign />
                 </div>
               </div>
               <div className="card profit-card">
-                <h3>{t.profit}</h3>
-                <p>${totals.profit.toLocaleString()}</p>
+                <h3>{translations[language].profit}</h3>
+                <p>${calculateTotals().profit.toLocaleString()}</p>
                 <div className="card-icon">
                   <FiDollarSign />
                 </div>
@@ -179,9 +260,9 @@ const Dashboard = () => {
 
             <div className="accounting-section">
               <div className="section-header">
-                <h2>{t.recentTransactions}</h2>
+                <h2>{translations[language].recentTransactions}</h2>
                 <button className="add-button">
-                  <FiPlus /> {t.addTransaction}
+                  <FiPlus /> {translations[language].addTransaction}
                 </button>
               </div>
               
@@ -202,7 +283,7 @@ const Dashboard = () => {
                         <td>{transaction.description}</td>
                         <td>${transaction.amount.toLocaleString()}</td>
                         <td className={`type-${transaction.type}`}>
-                          {transaction.type === 'revenue' ? t.revenue : t.expenses}
+                          {transaction.type === 'revenue' ? translations[language].revenue : translations[language].expenses}
                         </td>
                       </tr>
                     ))}
@@ -215,7 +296,7 @@ const Dashboard = () => {
       case 'accounting':
         return (
           <div className="accounting-section">
-            <h2>{t.allTransactions}</h2>
+            <h2>{translations[language].allTransactions}</h2>
             <div className="transactions-table">
               <table>
                 <thead>
@@ -234,7 +315,7 @@ const Dashboard = () => {
                       <td>{transaction.description}</td>
                       <td>${transaction.amount.toLocaleString()}</td>
                       <td className={`type-${transaction.type}`}>
-                        {transaction.type === 'revenue' ? t.revenue : t.expenses}
+                        {transaction.type === 'revenue' ? translations[language].revenue : translations[language].expenses}
                       </td>
                       <td>{transaction.category || '-'}</td>
                     </tr>
@@ -247,24 +328,71 @@ const Dashboard = () => {
       case 'reports':
         return (
           <div className="reports-section">
-            <h2>{t.reports}</h2>
+            <h2>{translations[language].reports}</h2>
             <div className="report-cards">
               <div className="report-card">
-                <h3>{t.cashFlow}</h3>
+                <h3>{translations[language].cashFlow}</h3>
                 <p>View cash flow statement</p>
               </div>
               <div className="report-card">
-                <h3>{t.balanceSheet}</h3>
+                <h3>{translations[language].balanceSheet}</h3>
                 <p>View balance sheet</p>
               </div>
               <div className="report-card">
-                <h3>{t.incomeStatement}</h3>
+                <h3>{translations[language].incomeStatement}</h3>
                 <p>View income statement</p>
               </div>
               <div className="report-card">
-                <h3>{t.taxReport}</h3>
+                <h3>{translations[language].taxReport}</h3>
                 <p>Generate tax report</p>
               </div>
+            </div>
+          </div>
+        );
+      case 'users':
+        return (
+          <div className="accounting-section">
+            <div className="section-header">
+              <h2>{translations[language].usersList}</h2>
+              <button 
+                className="add-button" 
+                onClick={() => setShowAddUserModal(true)}
+              >
+                <FiPlus /> {translations[language].addUser}
+              </button>
+            </div>
+            
+            <div className="transactions-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>{translations[language].username}</th>
+                    <th>{translations[language].email}</th>
+                    <th>{translations[language].role}</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(user => (
+                    <tr key={user.id}>
+                      <td>{user.username}</td>
+                      <td>{user.email}</td>
+                      <td>{user.role === 'owner' ? translations[language].owner : translations[language].accountant}</td>
+                      <td>
+                        <button className="action-button edit">
+                          <FiEdit /> {translations[language].edit}
+                        </button>
+                        <button 
+                          className="action-button delete"
+                          onClick={() => handleDeleteUser(user.id)}
+                        >
+                          <FiTrash2 /> {translations[language].delete}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         );
@@ -299,19 +427,19 @@ const Dashboard = () => {
             className={activeTab === 'dashboard' ? 'active' : ''} 
             onClick={() => setActiveTab('dashboard')}
           >
-            <FiPieChart /> {t.dashboard}
+            <FiPieChart /> {translations[language].dashboard}
           </button>
           <button 
             className={activeTab === 'accounting' ? 'active' : ''} 
             onClick={() => setActiveTab('accounting')}
           >
-            <FiDollarSign /> {t.accounting}
+            <FiDollarSign /> {translations[language].accounting}
           </button>
           <button 
             className={activeTab === 'reports' ? 'active' : ''} 
             onClick={() => setActiveTab('reports')}
           >
-            <FiFileText /> {t.reports}
+            <FiFileText /> {translations[language].reports}
           </button>
           
           {userData?.role === 'owner' && (
@@ -319,7 +447,7 @@ const Dashboard = () => {
               className={activeTab === 'users' ? 'active' : ''} 
               onClick={() => setActiveTab('users')}
             >
-              <FiUser /> {t.manageUsers}
+              <FiUser /> {translations[language].manageUsers}
             </button>
           )}
         </nav>
@@ -332,7 +460,7 @@ const Dashboard = () => {
             <div>
               <div className="username">{userData?.username}</div>
               <div className="user-role">
-                {t.role}: {userData ? (userData.role === 'owner' ? t.owner : t.accountant) : ''}
+                {translations[language].role}: {userData ? (userData.role === 'owner' ? translations[language].owner : translations[language].accountant) : ''}
               </div>
             </div>
           </div>
@@ -347,44 +475,30 @@ const Dashboard = () => {
       
       <div className="main-content">
         <header>
-          <h1>{t.welcome}</h1>
+          <h1>
+            {userData && userData.role === 'owner'
+              ? translations[language].ownerWelcome
+              : translations[language].accountantWelcome}
+          </h1>
           <button onClick={handleLogout} className="logout-button">
-            <FiLogOut /> {t.logout}
+            <FiLogOut /> {translations[language].logout}
           </button>
         </header>
         
-        {showSettings && (
-          <div className="settings-modal">
-            <div className="settings-content">
-              <h3>{t.settings}</h3>
-              <div className="setting-item">
-                <label>{t.changeRole}</label>
-                <select 
-                  value={newRole} 
-                  onChange={(e) => setNewRole(e.target.value)}
-                >
-                  <option value="owner">{t.owner}</option>
-                  <option value="accountant">{t.accountant}</option>
-                </select>
-              </div>
-              <div className="settings-buttons">
-                <button onClick={handleSaveRole} className="save-button">
-                  {t.save}
-                </button>
-                <button onClick={() => setShowSettings(false)} className="cancel-button">
-                  {t.cancel}
-                </button>
-              </div>
-            </div>
+        {/* User Information Section */}
+        {userData && (
+          <div className="user-info-header" style={{ marginBottom: "1rem", padding: "1rem", background: "#eef2ff", borderRadius: "8px" }}>
+            <p><strong>User:</strong> {userData.username}</p>
+            <p><strong>Email:</strong> {userData.email}</p>
           </div>
         )}
         
         {userData && (
           <div className="profile-card">
-            <h2>{t.profile}</h2>
-            <p><strong>{t.username}:</strong> {userData.username}</p>
-            <p><strong>{t.email}:</strong> {userData.email}</p>
-            <p><strong>{t.role}:</strong> {userData.role === 'owner' ? t.owner : t.accountant}</p>
+            <h2>{translations[language].profile}</h2>
+            <p><strong>{translations[language].username}:</strong> {userData.username}</p>
+            <p><strong>{translations[language].email}:</strong> {userData.email}</p>
+            <p><strong>{translations[language].role}:</strong> {userData.role === 'owner' ? translations[language].owner : translations[language].accountant}</p>
           </div>
         )}
         
