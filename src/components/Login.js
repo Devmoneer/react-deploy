@@ -26,7 +26,9 @@ function Login() {
             verifyError: 'Please verify your email first. Check your inbox.',
             welcome: 'Welcome Back!',
             subtitle: 'Please enter your details to access your account',
-            loading: 'Logging in...'
+            loading: 'Logging in...',
+            authError: 'Authentication error',
+            docError: 'User account not properly configured'
         },
         arabic: {
             title: 'تسجيل الدخول إلى ACCDPU',
@@ -39,7 +41,9 @@ function Login() {
             verifyError: 'يرجى التحقق من بريدك الإلكتروني أولاً. تحقق من صندوق الوارد.',
             welcome: 'أهلاً بعودتك!',
             subtitle: 'الرجاء إدخال بياناتك للوصول إلى حسابك',
-            loading: 'جاري تسجيل الدخول...'
+            loading: 'جاري تسجيل الدخول...',
+            authError: 'خطأ في المصادقة',
+            docError: 'حساب المستخدم غير مهيأ بشكل صحيح'
         },
         sorani: {
             title: 'چوونەژوورەوە بۆ ACCDPU',
@@ -52,7 +56,9 @@ function Login() {
             verifyError: 'تکایە یەکەم پشتڕاست بکەرەوە ئیمەیلەکەت. بچۆرە ناو صندوقی نامەکان.',
             welcome: 'بەخێربێیتەوە!',
             subtitle: 'تکایە وردەکارییەکان بنووسە بۆ چوونەژوورەوە بۆ هەژمارەکەت',
-            loading: 'چوونەژوورەوە...'
+            loading: 'چوونەژوورەوە...',
+            authError: 'هەڵەی ڕاستکردنەوە',
+            docError: 'هەژماری بەکارهێنەر بە شێوەیەکی ڕاست ڕێکخراو نییە'
         }
     };
 
@@ -61,27 +67,42 @@ function Login() {
         try {
             setLoading(true);
             setError('');
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
             
+            // Sign in with email and password
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            console.log('Authentication successful', userCredential.user);
+            
+            // Check email verification
             if (!userCredential.user.emailVerified) {
-                setError(translations[language].verifyError);
+                console.log('Email not verified - sending new verification');
                 await sendEmailVerification(userCredential.user);
+                setError(translations[language].verifyError);
                 setLoading(false);
                 return;
             }
             
             // Check if user exists in Firestore
             const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+            console.log('Firestore user document:', userDoc.exists() ? userDoc.data() : 'Not found');
+            
             if (!userDoc.exists()) {
-                setError(translations[language].error);
+                console.error('User document missing in Firestore');
+                setError(translations[language].docError);
                 setLoading(false);
                 return;
             }
             
+            // Successful login - navigate to dashboard
             navigate('/dashboard');
         } catch (err) {
-            setError(translations[language].error);
-            console.error('Login error:', err);
+            console.error('Login error:', err.code, err.message);
+            if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+                setError(translations[language].error);
+            } else if (err.code === 'auth/too-many-requests') {
+                setError('Account temporarily disabled due to too many login attempts');
+            } else {
+                setError(err.message || translations[language].authError);
+            }
         } finally {
             setLoading(false);
         }
@@ -141,7 +162,12 @@ function Login() {
                             className={`auth-button primary ${loading ? 'loading' : ''}`}
                             disabled={loading}
                         >
-                            {loading ? t.loading : t.login}
+                            {loading ? (
+                                <>
+                                    <span className="spinner"></span>
+                                    {t.loading}
+                                </>
+                            ) : t.login}
                         </button>
                     </form>
 
