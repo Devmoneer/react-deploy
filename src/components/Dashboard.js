@@ -5,7 +5,7 @@ import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import '../dashboard.css';
 
-const OwnerDashboard = () => {
+const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [accountingData, setAccountingData] = useState([]);
   const [language, setLanguage] = useState('english');
@@ -15,13 +15,12 @@ const OwnerDashboard = () => {
     english: {
       welcome: 'Welcome to ACCDPU',
       profile: 'Company Profile',
-      username: 'Owner Name',
+      username: 'Name',
       email: 'Email',
       logout: 'Logout',
       dashboard: 'Dashboard',
       reports: 'Financial Reports',
       accounting: 'Accounting',
-      employees: 'Employees',
       transactions: 'Transactions',
       revenue: 'Revenue',
       expenses: 'Expenses',
@@ -35,13 +34,12 @@ const OwnerDashboard = () => {
     arabic: {
       welcome: 'مرحبًا بكم في ACCDPU',
       profile: 'ملف الشركة',
-      username: 'اسم المالك',
+      username: 'الاسم',
       email: 'البريد الإلكتروني',
       logout: 'تسجيل الخروج',
       dashboard: 'لوحة التحكم',
       reports: 'التقارير المالية',
       accounting: 'المحاسبة',
-      employees: 'الموظفون',
       transactions: 'المعاملات',
       revenue: 'الإيرادات',
       expenses: 'المصروفات',
@@ -55,13 +53,12 @@ const OwnerDashboard = () => {
     sorani: {
       welcome: 'بەخێربێن بۆ ACCDPU',
       profile: 'پرۆفایلی کۆمپانیا',
-      username: 'ناوی خاوەن',
+      username: 'ناو',
       email: 'ئیمەیل',
       logout: 'چوونەدەرەوە',
       dashboard: 'داشبۆرد',
       reports: 'ڕاپۆرتە داراییەکان',
       accounting: 'ژمێریاری',
-      employees: 'کارمەندەکان',
       transactions: 'مامەڵەکان',
       revenue: 'داهات',
       expenses: 'خەرجی',
@@ -78,18 +75,12 @@ const OwnerDashboard = () => {
     const fetchData = async () => {
       const user = auth.currentUser;
       if (user) {
-        // زانیاریێن بکارهێنەری
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
           setUserData(userDoc.data());
         }
-
-        // زانیاریێن محاسەبی
         const querySnapshot = await getDocs(collection(db, "transactions"));
-        const data = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setAccountingData(data);
       }
     };
@@ -116,7 +107,7 @@ const OwnerDashboard = () => {
   const t = translations[language];
 
   return (
-    <div className="dashboard-container owner-dashboard">
+    <div className={`dashboard-container ${userData && userData.role === 'owner' ? 'owner-dashboard' : 'accountant-dashboard'}`}>
       <div className="sidebar">
         <h2>ACCDPU</h2>
         <div className="language-selector">
@@ -128,16 +119,16 @@ const OwnerDashboard = () => {
           <button className="active">{t.dashboard}</button>
           <button>{t.accounting}</button>
           <button>{t.reports}</button>
-          <button>{t.employees}</button>
+          <div style={{ marginTop: '1rem', fontWeight: 'bold' }}>
+            {t.role}: {userData ? (userData.role === 'owner' ? t.owner : t.accountant) : ''}
+          </div>
         </nav>
       </div>
       
       <div className="main-content">
         <header>
           <h1>{t.welcome}</h1>
-          <button onClick={handleLogout} className="logout-button">
-            {t.logout}
-          </button>
+          <button onClick={handleLogout} className="logout-button">{t.logout}</button>
         </header>
         
         {userData && (
@@ -200,4 +191,4 @@ const OwnerDashboard = () => {
   );
 };
 
-export default OwnerDashboard;
+export default Dashboard;

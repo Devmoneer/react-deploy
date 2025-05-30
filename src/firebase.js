@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore, } from 'firebase/firestore';
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyBvnm_vCvuImaPwbbLniykutJsjdU7kMMI",
   authDomain: "moneerwebapp-fa166.firebaseapp.com",

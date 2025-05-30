@@ -4,11 +4,8 @@ import { AuthProvider } from './AuthContext';
 import Login from './components/Login';
 import Register from './components/register';
 import ForgotPassword from './components/ForgotPassword';
-import DashboardSelector from './components/DashboardSelector';
-import OwnerDashboard from './components/OwnerDashboard';
-import AccountantDashboard from './components/AccountantDashboard';
+import Dashboard from './components/Dashboard';
 import ProtectedRoute from './ProtectedRoute';
-import ErrorPage from './ErrorPage';
 import './App.css';
 
 function AppRoutes() {
@@ -18,23 +15,17 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/dashboard-selector" element={
+        <Route path="/dashboard" element={
           <ProtectedRoute>
-            <DashboardSelector />
+            <Dashboard />
           </ProtectedRoute>
         } />
-        <Route path="/owner-dashboard" element={
+        {/* Unrecognized paths redirect to Dashboard */}
+        <Route path="*" element={
           <ProtectedRoute>
-            <OwnerDashboard />
+            <Dashboard />
           </ProtectedRoute>
         } />
-        <Route path="/accountant-dashboard" element={
-          <ProtectedRoute>
-            <AccountantDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/error" element={<ErrorPage />} />
-        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </div>
   );

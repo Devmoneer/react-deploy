@@ -55,8 +55,8 @@ function Login() {
                 return;
             }
             
-            // Redirect to dashboard selector which will determine the correct dashboard
-            navigate('/dashboard-selector');
+            // Redirect directly to the dashboard
+            navigate('/dashboard');
         } catch (err) {
             setError(translations[language].error);
             console.error('Login error:', err);
