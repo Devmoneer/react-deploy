@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { auth, db } from '../firebase';
-import { doc, getDoc, collection, getDocs, addDoc, updateDoc, query, where, deleteDoc } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { doc, getDoc, collection, getDocs, query, where, addDoc, deleteDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { signOut, createUserWithEmailAndPassword, sendEmailVerification, deleteUser } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 import '../dashboard.css';
 import { FiPieChart, FiDollarSign, FiFileText, FiSettings, FiUser, FiLogOut, FiPlus, FiTrash2, FiEdit } from 'react-icons/fi';
 import { FaUserShield, FaUserTie } from 'react-icons/fa';
 
 const Dashboard = () => {
+  const { currentUser } = useAuth();
   const [userData, setUserData] = useState(null);
   const [accountingData, setAccountingData] = useState([]);
   const [users, setUsers] = useState([]);
@@ -16,12 +18,15 @@ const Dashboard = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [newRole, setNewRole] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [newUser, setNewUser] = useState({
     email: '',
     username: '',
-    role: 'accountant',
-    password: ''
+    password: '',
+    role: 'accountant'
   });
+
   const navigate = useNavigate();
 
   const translations = {
@@ -63,7 +68,8 @@ const Dashboard = () => {
       addNewUser: 'Add New Accountant',
       userAdded: 'User added successfully',
       userDeleted: 'User deleted successfully',
-      userUpdated: 'User updated successfully'
+      userUpdated: 'User updated successfully',
+      error: 'Error occurred'
     },
     arabic: {
       welcome: 'مرحبًا بكم في ACCDPU',
@@ -101,7 +107,8 @@ const Dashboard = () => {
       addNewUser: 'إضافة محاسب جديد',
       userAdded: 'تمت إضافة المستخدم بنجاح',
       userDeleted: 'تم حذف المستخدم بنجاح',
-      userUpdated: 'تم تحديث المستخدم بنجاح'
+      userUpdated: 'تم تحديث المستخدم بنجاح',
+      error: 'حدث خطأ'
     },
     sorani: {
       welcome: 'بەخێربێن بۆ ACCDPU',
@@ -139,32 +146,64 @@ const Dashboard = () => {
       addNewUser: 'زیادکردنی ژمێریاری نوێ',
       userAdded: 'بەکارهێنەر بە سەرکەوتوویی زیادکرا',
       userDeleted: 'بەکارهێنەر بە سەرکەوتوویی سڕایەوە',
-      userUpdated: 'بەکارهێنەر بە سەرکەوتوویی نوێکرایەوە'
+      userUpdated: 'بەکارهێنەر بە سەرکەوتوویی نوێکرایەوە',
+      error: 'هەڵەیەک ڕوویدا'
     }
   };
 
   useEffect(() => {
     const fetchData = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
-        }
-        const querySnapshot = await getDocs(collection(db, "transactions"));
-        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setAccountingData(data);
+      try {
+        setLoading(true);
+        if (currentUser) {
+          // Check if email is verified
+          if (!currentUser.emailVerified) {
+            navigate('/login');
+            return;
+          }
 
-        if (userDoc.data().role === 'owner') {
-          const usersQuery = query(collection(db, "users"), where("role", "==", "accountant"));
-          const usersSnapshot = await getDocs(usersQuery);
-          const usersData = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setUsers(usersData);
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (!userDoc.exists()) {
+            navigate('/login');
+            return;
+          }
+
+          const userData = userDoc.data();
+          setUserData(userData);
+
+          // Fetch transactions
+          const transactionsQuery = query(
+            collection(db, "transactions"),
+            where("userId", "==", currentUser.uid)
+          );
+          const transactionsSnapshot = await getDocs(transactionsQuery);
+          const transactionsData = transactionsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setAccountingData(transactionsData);
+
+          // Fetch users if owner
+          if (userData.role === 'owner') {
+            const usersQuery = query(collection(db, "users"));
+            const usersSnapshot = await getDocs(usersQuery);
+            const usersData = usersSnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            }));
+            setUsers(usersData);
+          }
         }
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+        setError(translations[language].error);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchData();
-  }, []);
+  }, [currentUser, navigate, language]);
 
   const handleLogout = async () => {
     try {
@@ -172,6 +211,7 @@ const Dashboard = () => {
       navigate('/login');
     } catch (err) {
       console.error(err);
+      setError(translations[language].error);
     }
   };
 
@@ -184,52 +224,87 @@ const Dashboard = () => {
 
   const handleSaveRole = async () => {
     try {
-      await updateDoc(doc(db, "users", auth.currentUser.uid), { role: newRole });
+      setLoading(true);
+      await updateDoc(doc(db, "users", currentUser.uid), { role: newRole });
       setUserData({ ...userData, role: newRole });
       setShowSettings(false);
       alert(translations[language].userUpdated);
     } catch (error) {
       console.error("Error updating role: ", error);
+      setError(translations[language].error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddUser = async () => {
     try {
-      // In a real app, you would create the user with Firebase Auth first
-      // then add to Firestore with the same UID
-      await addDoc(collection(db, "users"), {
-        email: newUser.email,
+      setLoading(true);
+      // First create auth user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        newUser.email, 
+        newUser.password
+      );
+      
+      // Send verification email
+      await sendEmailVerification(userCredential.user);
+      
+      // Then add to Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
         username: newUser.username,
-        role: newUser.role,
+        email: newUser.email,
+        role: 'accountant',
+        emailVerified: false,
         createdAt: new Date()
       });
       
-      setUsers([...users, { ...newUser, id: Date.now().toString() }]);
+      setUsers([...users, { 
+        id: userCredential.user.uid,
+        username: newUser.username,
+        email: newUser.email,
+        role: 'accountant'
+      }]);
+      
       setNewUser({
         email: '',
         username: '',
-        role: 'accountant',
-        password: ''
+        password: '',
+        role: 'accountant'
       });
       setShowAddUserModal(false);
       alert(translations[language].userAdded);
     } catch (error) {
       console.error("Error adding user: ", error);
+      setError(error.message || translations[language].error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    try {
-      // In a real app, you would also delete from Firebase Auth
-      await deleteDoc(doc(db, "users", userId));
-      setUsers(users.filter(user => user.id !== userId));
-      alert(translations[language].userDeleted);
-    } catch (error) {
-      console.error("Error deleting user: ", error);
+    if (window.confirm(translations[language].deleteConfirm)) {
+      try {
+        setLoading(true);
+        // Note: In production, you would need admin privileges to delete users
+        // This is a simplified version
+        await deleteDoc(doc(db, "users", userId));
+        setUsers(users.filter(user => user.id !== userId));
+        alert(translations[language].userDeleted);
+      } catch (error) {
+        console.error("Error deleting user: ", error);
+        setError(translations[language].error);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const renderTabContent = () => {
+    if (loading) {
+      return <div className="loading-spinner">Loading...</div>;
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return (
@@ -354,12 +429,14 @@ const Dashboard = () => {
           <div className="accounting-section">
             <div className="section-header">
               <h2>{translations[language].usersList}</h2>
-              <button 
-                className="add-button" 
-                onClick={() => setShowAddUserModal(true)}
-              >
-                <FiPlus /> {translations[language].addUser}
-              </button>
+              {userData?.role === 'owner' && (
+                <button 
+                  className="add-button" 
+                  onClick={() => setShowAddUserModal(true)}
+                >
+                  <FiPlus /> {translations[language].addUser}
+                </button>
+              )}
             </div>
             
             <div className="transactions-table">
@@ -369,7 +446,7 @@ const Dashboard = () => {
                     <th>{translations[language].username}</th>
                     <th>{translations[language].email}</th>
                     <th>{translations[language].role}</th>
-                    <th>Actions</th>
+                    {userData?.role === 'owner' && <th>Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -378,17 +455,17 @@ const Dashboard = () => {
                       <td>{user.username}</td>
                       <td>{user.email}</td>
                       <td>{user.role === 'owner' ? translations[language].owner : translations[language].accountant}</td>
-                      <td>
-                        <button className="action-button edit">
-                          <FiEdit /> {translations[language].edit}
-                        </button>
-                        <button 
-                          className="action-button delete"
-                          onClick={() => handleDeleteUser(user.id)}
-                        >
-                          <FiTrash2 /> {translations[language].delete}
-                        </button>
-                      </td>
+                      {userData?.role === 'owner' && (
+                        <td>
+                          <button 
+                            className="action-button delete"
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={user.role === 'owner'}
+                          >
+                            <FiTrash2 /> {translations[language].delete}
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -485,13 +562,7 @@ const Dashboard = () => {
           </button>
         </header>
         
-        {/* User Information Section */}
-        {userData && (
-          <div className="user-info-header" style={{ marginBottom: "1rem", padding: "1rem", background: "#eef2ff", borderRadius: "8px" }}>
-            <p><strong>User:</strong> {userData.username}</p>
-            <p><strong>Email:</strong> {userData.email}</p>
-          </div>
-        )}
+        {error && <div className="error-message">{error}</div>}
         
         {userData && (
           <div className="profile-card">
@@ -504,8 +575,58 @@ const Dashboard = () => {
         
         {renderTabContent()}
       </div>
+
+      {/* Add User Modal */}
+      {showAddUserModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>{translations[language].addNewUser}</h2>
+            <div className="form-group">
+              <label>{translations[language].username}</label>
+              <input
+                type="text"
+                value={newUser.username}
+                onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                placeholder={translations[language].username}
+              />
+            </div>
+            <div className="form-group">
+              <label>{translations[language].email}</label>
+              <input
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                placeholder="user@example.com"
+              />
+            </div>
+            <div className="form-group">
+              <label>{translations[language].password}</label>
+              <input
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                placeholder="••••••••"
+              />
+            </div>
+            <div className="modal-actions">
+              <button 
+                onClick={handleAddUser}
+                disabled={loading}
+              >
+                {loading ? 'Adding...' : translations[language].save}
+              </button>
+              <button 
+                onClick={() => setShowAddUserModal(false)}
+                disabled={loading}
+              >
+                {translations[language].cancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Dashboard;
+export default Dashboard

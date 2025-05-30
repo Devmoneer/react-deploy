@@ -32,7 +32,8 @@ const Register = () => {
       success: 'Registration successful! Please check your email for verification.',
       loading: 'Processing...',
       welcome: 'Get Started',
-      subtitle: 'Create an account to access all features'
+      subtitle: 'Create an account to access all features',
+      passwordError: 'Password must be at least 6 characters'
     },
     arabic: {
       title: 'إنشاء حساب',
@@ -48,7 +49,8 @@ const Register = () => {
       success: 'تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني لإتمام التحقق.',
       loading: 'جاري المعالجة...',
       welcome: 'ابدأ رحلتك',
-      subtitle: 'أنشئ حسابًا للوصول إلى جميع الميزات'
+      subtitle: 'أنشئ حسابًا للوصول إلى جميع الميزات',
+      passwordError: 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل'
     },
     sorani: {
       title: 'درووستکردنی هەژمار',
@@ -64,14 +66,23 @@ const Register = () => {
       success: 'تۆمارکردن سەرکەوتوو بوو! تکایە بۆ تەواوکردنی پشتڕاستکردنەوە بچۆرە ئیمەیلەکەت.',
       loading: 'لە پڕۆسەکردندایە...',
       welcome: 'دەستپێبکە',
-      subtitle: 'هەژمارێک درووست بکە بۆ چوونە ناو هەموو تایبەتمەندییەکان'
+      subtitle: 'هەژمارێک درووست بکە بۆ چوونە ناو هەموو تایبەتمەندییەکان',
+      passwordError: 'وشەی نهێنی پێویستە کەمترین 6 پیت بێت'
     }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    
+    // Validate passwords match
     if (password !== confirmPassword) {
       setError(translations[language].error);
+      return;
+    }
+    
+    // Validate password length
+    if (password.length < 6) {
+      setError(translations[language].passwordError);
       return;
     }
 
@@ -79,9 +90,13 @@ const Register = () => {
     setError('');
 
     try {
+      // Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Send verification email
       await sendEmailVerification(userCredential.user);
-
+      
+      // Create user document in Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {
         username,
         email,

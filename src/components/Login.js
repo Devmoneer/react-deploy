@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
 import '../App.css';
 
 function Login() {
@@ -9,6 +11,7 @@ function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [language, setLanguage] = useState('english');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const translations = {
@@ -22,7 +25,8 @@ function Login() {
             error: 'Invalid email or password',
             verifyError: 'Please verify your email first. Check your inbox.',
             welcome: 'Welcome Back!',
-            subtitle: 'Please enter your details to access your account'
+            subtitle: 'Please enter your details to access your account',
+            loading: 'Logging in...'
         },
         arabic: {
             title: 'تسجيل الدخول إلى ACCDPU',
@@ -34,7 +38,8 @@ function Login() {
             error: 'البريد الإلكتروني أو كلمة المرور غير صالحة',
             verifyError: 'يرجى التحقق من بريدك الإلكتروني أولاً. تحقق من صندوق الوارد.',
             welcome: 'أهلاً بعودتك!',
-            subtitle: 'الرجاء إدخال بياناتك للوصول إلى حسابك'
+            subtitle: 'الرجاء إدخال بياناتك للوصول إلى حسابك',
+            loading: 'جاري تسجيل الدخول...'
         },
         sorani: {
             title: 'چوونەژوورەوە بۆ ACCDPU',
@@ -46,17 +51,30 @@ function Login() {
             error: 'ئیمەیل یان وشەی نهێنی نادروستە',
             verifyError: 'تکایە یەکەم پشتڕاست بکەرەوە ئیمەیلەکەت. بچۆرە ناو صندوقی نامەکان.',
             welcome: 'بەخێربێیتەوە!',
-            subtitle: 'تکایە وردەکارییەکان بنووسە بۆ چوونەژوورەوە بۆ هەژمارەکەت'
+            subtitle: 'تکایە وردەکارییەکان بنووسە بۆ چوونەژوورەوە بۆ هەژمارەکەت',
+            loading: 'چوونەژوورەوە...'
         }
     };
 
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
+            setLoading(true);
+            setError('');
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             
             if (!userCredential.user.emailVerified) {
                 setError(translations[language].verifyError);
+                await sendEmailVerification(userCredential.user);
+                setLoading(false);
+                return;
+            }
+            
+            // Check if user exists in Firestore
+            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+            if (!userDoc.exists()) {
+                setError(translations[language].error);
+                setLoading(false);
                 return;
             }
             
@@ -64,6 +82,8 @@ function Login() {
         } catch (err) {
             setError(translations[language].error);
             console.error('Login error:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -116,8 +136,12 @@ function Login() {
                                 required />
                         </div>
 
-                        <button type="submit" className="auth-button primary">
-                            {t.login}
+                        <button 
+                            type="submit" 
+                            className={`auth-button primary ${loading ? 'loading' : ''}`}
+                            disabled={loading}
+                        >
+                            {loading ? t.loading : t.login}
                         </button>
                     </form>
 
