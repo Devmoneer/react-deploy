@@ -17,14 +17,14 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  const value = {
-    currentUser,
-    loading
-  };
+  const value = { currentUser, loading };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading 
+        ? <div className="loading-screen">Please wait, loading your data...</div>
+        : children
+      }
     </AuthContext.Provider>
   );
 }

@@ -20,7 +20,9 @@ function Login() {
             register: 'Create Account',
             forgot: 'Forgot Password?',
             error: 'Invalid email or password',
-            verifyError: 'Please verify your email first. Check your inbox.'
+            verifyError: 'Please verify your email first. Check your inbox.',
+            welcome: 'Welcome Back!',
+            subtitle: 'Please enter your details to access your account'
         },
         arabic: {
             title: 'تسجيل الدخول إلى ACCDPU',
@@ -30,7 +32,9 @@ function Login() {
             register: 'إنشاء حساب',
             forgot: 'نسيت كلمة المرور؟',
             error: 'البريد الإلكتروني أو كلمة المرور غير صالحة',
-            verifyError: 'يرجى التحقق من بريدك الإلكتروني أولاً. تحقق من صندوق الوارد.'
+            verifyError: 'يرجى التحقق من بريدك الإلكتروني أولاً. تحقق من صندوق الوارد.',
+            welcome: 'أهلاً بعودتك!',
+            subtitle: 'الرجاء إدخال بياناتك للوصول إلى حسابك'
         },
         sorani: {
             title: 'چوونەژوورەوە بۆ ACCDPU',
@@ -40,7 +44,9 @@ function Login() {
             register: 'درووستکردنی هەژمار',
             forgot: 'وشەی نهێنیت لەبیرچووە؟',
             error: 'ئیمەیل یان وشەی نهێنی نادروستە',
-            verifyError: 'تکایە یەکەم پشتڕاست بکەرەوە ئیمەیلەکەت. بچۆرە ناو صندوقی نامەکان.'
+            verifyError: 'تکایە یەکەم پشتڕاست بکەرەوە ئیمەیلەکەت. بچۆرە ناو صندوقی نامەکان.',
+            welcome: 'بەخێربێیتەوە!',
+            subtitle: 'تکایە وردەکارییەکان بنووسە بۆ چوونەژوورەوە بۆ هەژمارەکەت'
         }
     };
 
@@ -49,13 +55,11 @@ function Login() {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             
-            // Check if email is verified
             if (!userCredential.user.emailVerified) {
                 setError(translations[language].verifyError);
                 return;
             }
             
-            // Redirect directly to the dashboard
             navigate('/dashboard');
         } catch (err) {
             setError(translations[language].error);
@@ -66,46 +70,78 @@ function Login() {
     const t = translations[language];
 
     return (
-        <div className="auth-container">
-            <div className="auth-box">
-                <div className="language-selector">
-                    <button onClick={() => setLanguage('english')}>EN</button>
-                    <button onClick={() => setLanguage('arabic')}>AR</button>
-                    <button onClick={() => setLanguage('sorani')}>KU</button>
+        <div className="auth-page-container">
+            <div className="auth-form-container">
+                <div className="auth-box">
+                    <div className="language-selector">
+                        <button 
+                            onClick={() => setLanguage('english')}
+                            className={language === 'english' ? 'active' : ''}
+                        >EN</button>
+                        <button 
+                            onClick={() => setLanguage('arabic')}
+                            className={language === 'arabic' ? 'active' : ''}
+                        >AR</button>
+                        <button 
+                            onClick={() => setLanguage('sorani')}
+                            className={language === 'sorani' ? 'active' : ''}
+                        >KU</button>
+                    </div>
+
+                    <div className="auth-header">
+                        <h1>{t.welcome}</h1>
+                        <p className="subtitle">{t.subtitle}</p>
+                    </div>
+                    
+                    {error && <p className="error-message">{error}</p>}
+
+                    <form onSubmit={handleLogin} className="auth-form">
+                        <div className="form-group">
+                            <label>{t.email}</label>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="example@email.com"
+                                required />
+                        </div>
+
+                        <div className="form-group">
+                            <label>{t.password}</label>
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                required />
+                        </div>
+
+                        <button type="submit" className="auth-button primary">
+                            {t.login}
+                        </button>
+                    </form>
+
+                    <div className="auth-footer">
+                        <div className="auth-links">
+                            <button onClick={() => navigate('/register')} className="text-button">
+                                {t.register}
+                            </button>
+                            <button onClick={() => navigate('/forgot-password')} className="text-button">
+                                {t.forgot}
+                            </button>
+                        </div>
+                    </div>
                 </div>
-
-                <h2>{t.title}</h2>
-                {error && <p className="error-message">{error}</p>}
-
-                <form onSubmit={handleLogin}>
-                    <div className="form-group">
-                        <label>{t.email}</label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required />
-                    </div>
-
-                    <div className="form-group">
-                        <label>{t.password}</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required />
-                    </div>
-
-                    <button type="submit" className="auth-button">{t.login}</button>
-                </form>
-
-                <div className="auth-links">
-                    <button onClick={() => navigate('/register')} className="link-button">
-                        {t.register}
-                    </button>
-                    <button onClick={() => navigate('/forgot-password')} className="link-button">
-                        {t.forgot}
-                    </button>
+            </div>
+            
+            <div className="auth-illustration">
+                <img 
+                    src={`${process.env.PUBLIC_URL}/images/4957136.jpg`} 
+                    alt="Login illustration" 
+                />
+                <div className="illustration-overlay">
+                    <h2>ACCDPU</h2>
+                    <p>Accounting & Consulting Company Dashboard for Private Use</p>
                 </div>
             </div>
         </div>

@@ -14,11 +14,12 @@ const Register = () => {
   const [success, setSuccess] = useState('');
   const [language, setLanguage] = useState('english');
   const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState('owner');
   const navigate = useNavigate();
 
   const translations = {
     english: {
-      title: 'Create ACCDPU Account',
+      title: 'Create Account',
       username: 'Username',
       email: 'Email',
       password: 'Password',
@@ -30,12 +31,14 @@ const Register = () => {
       success: 'Registration successful! Please check your email for verification.',
       loading: 'Processing...',
       role: 'Role',
-  owner: 'Company Owner',
-  accountant: 'Accountant',
-  selectRole: 'Select your role'
+      owner: 'Company Owner',
+      accountant: 'Accountant',
+      selectRole: 'Select your role',
+      welcome: 'Get Started',
+      subtitle: 'Create an account to access all features'
     },
     arabic: {
-      title: 'إنشاء حساب ACCDPU',
+      title: 'إنشاء حساب',
       username: 'اسم المستخدم',
       email: 'البريد الإلكتروني',
       password: 'كلمة المرور',
@@ -47,12 +50,14 @@ const Register = () => {
       success: 'تم التسجيل بنجاح! يرجى التحقق من بريدك الإلكتروني لإتمام التحقق.',
       loading: 'جاري المعالجة...',
       role: 'الدور',
-  owner: 'مالك الشركة',
-  accountant: 'محاسب',
-  selectRole: 'اختر دورك'
+      owner: 'مالك الشركة',
+      accountant: 'محاسب',
+      selectRole: 'اختر دورك',
+      welcome: 'ابدأ رحلتك',
+      subtitle: 'أنشئ حسابًا للوصول إلى جميع الميزات'
     },
     sorani: {
-      title: 'درووستکردنی هەژماری ACCDPU',
+      title: 'درووستکردنی هەژمار',
       username: 'ناوی بەکارهێنەر',
       email: 'ئیمەیل',
       password: 'وشەی نهێنی',
@@ -64,15 +69,14 @@ const Register = () => {
       success: 'تۆمارکردن سەرکەوتوو بوو! تکایە بۆ تەواوکردنی پشتڕاستکردنەوە بچۆرە ئیمەیلەکەت.',
       loading: 'لە پڕۆسەکردندایە...',
       role: 'ڕۆڵ',
-  owner: 'خاوەن کۆمپانیا',
-  accountant: 'ژمێریار',
-  selectRole: 'ڕۆڵەکەت هەڵبژێرە'
+      owner: 'خاوەن کۆمپانیا',
+      accountant: 'ژمێریار',
+      selectRole: 'ڕۆڵەکەت هەڵبژێرە',
+      welcome: 'دەستپێبکە',
+      subtitle: 'هەژمارێک درووست بکە بۆ چوونە ناو هەموو تایبەتمەندییەکان'
     }
   };
 
-  const [role, setRole] = useState('owner');
-
-  
   const handleRegister = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -85,22 +89,19 @@ const Register = () => {
     
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // Send email verification
       await sendEmailVerification(userCredential.user);
       
-      // Save user data to Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {
-  username,
-  email,
-  role,
-  emailVerified: false,
-  createdAt: new Date()
-});
+        username,
+        email,
+        role,
+        emailVerified: false,
+        createdAt: new Date()
+      });
+      
       setSuccess(translations[language].success);
       setIsLoading(false);
       
-      // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate('/login');
       }, 3000);
@@ -113,84 +114,121 @@ const Register = () => {
   const t = translations[language];
 
   return (
-    <div className="auth-container">
-      <div className="auth-box">
-        <div className="language-selector">
-          <button onClick={() => setLanguage('english')}>EN</button>
-          <button onClick={() => setLanguage('arabic')}>AR</button>
-          <button onClick={() => setLanguage('sorani')}>KU</button>
-        </div>
-        
-        <h2>{t.title}</h2>
-        {error && <p className="error-message">{error}</p>}
-        {success && <p className="success-message">{success}</p>}
-        
-        <form onSubmit={handleRegister}>
-          <div className="form-group">
-            <label>{t.username}</label>
-            <input 
-              type="text" 
-              value={username} 
-              onChange={(e) => setUsername(e.target.value)} 
-              required 
-            />
+    <div className="auth-page-container">
+      <div className="auth-form-container">
+        <div className="auth-box">
+          <div className="language-selector">
+            <button 
+              onClick={() => setLanguage('english')}
+              className={language === 'english' ? 'active' : ''}
+            >EN</button>
+            <button 
+              onClick={() => setLanguage('arabic')}
+              className={language === 'arabic' ? 'active' : ''}
+            >AR</button>
+            <button 
+              onClick={() => setLanguage('sorani')}
+              className={language === 'sorani' ? 'active' : ''}
+            >KU</button>
           </div>
+          
+          <div className="auth-header">
+            <h1>{t.welcome}</h1>
+            <p className="subtitle">{t.subtitle}</p>
+          </div>
+          
+          {error && <p className="error-message">{error}</p>}
+          {success && <p className="success-message">{success}</p>}
+          
+          <form onSubmit={handleRegister} className="auth-form">
+            <div className="form-group">
+              <label>{t.username}</label>
+              <input 
+                type="text" 
+                value={username} 
+                onChange={(e) => setUsername(e.target.value)} 
+                placeholder="john_doe"
+                required 
+              />
+            </div>
 
-          <div className="form-group">
-            <label>{t.email}</label>
-            <input 
-              type="email" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              required 
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>{t.password}</label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              required 
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>{t.confirm}</label>
-            <input 
-              type="password" 
-              value={confirmPassword} 
-              onChange={(e) => setConfirmPassword(e.target.value)} 
-              required 
-            />
-          </div>
+            <div className="form-group">
+              <label>{t.email}</label>
+              <input 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                placeholder="example@email.com"
+                required 
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>{t.password}</label>
+              <input 
+                type="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                placeholder="••••••••"
+                required 
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>{t.confirm}</label>
+              <input 
+                type="password" 
+                value={confirmPassword} 
+                onChange={(e) => setConfirmPassword(e.target.value)} 
+                placeholder="••••••••"
+                required 
+              />
+            </div>
 
-          <div className="form-group">
-          <label>{t.role}</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            required
-          >
-            <option value="owner">{t.owner}</option>
-            <option value="accountant">{t.accountant}</option>
-          </select>
-        </div>
+            <div className="form-group">
+              <label>{t.role}</label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+                className="role-select"
+              >
+                <option value="" disabled>{t.selectRole}</option>
+                <option value="owner">{t.owner}</option>
+                <option value="accountant">{t.accountant}</option>
+              </select>
+            </div>
+            
+            <button 
+              type="submit" 
+              className={`auth-button primary ${isLoading ? 'loading' : ''}`}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <span className="spinner"></span>
+                  {t.loading}
+                </>
+              ) : t.register}
+            </button>
+          </form>
           
-          <button 
-            type="submit" 
-            className="auth-button"
-            disabled={isLoading}
-          >
-            {isLoading ? t.loading : t.register}
-          </button>
-        </form>
-        
-        <div className="auth-links">
-          <button onClick={() => navigate('/login')} className="link-button">
-            {t.login}
-          </button>
+          <div className="auth-footer">
+            <button onClick={() => navigate('/login')} className="text-button">
+              {t.login}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div className="auth-illustration">
+        <img 
+          src={`${process.env.PUBLIC_URL}/images/4957136.jpg`} 
+          alt="Register illustration" 
+        />
+        <div className="illustration-overlay">
+          <h2>Join ACCDPU</h2>
+          <p>Start managing your accounting processes efficiently</p>
         </div>
       </div>
     </div>
