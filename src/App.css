@@ -1,9 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&display=swap');
+
+body {
+    font-family: 'noto kufi arabic', sans-serif;
+}
+
+
+
+
 .auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #2e7d32; 
+  background-color: white; 
   font-family: Arial, sans-serif;
 }
 
