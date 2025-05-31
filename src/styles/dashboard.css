@@ -46,13 +46,27 @@
 .sidebar-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 2rem;
 }
 
-.sidebar h2 {
+.header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-info h2 {
   font-size: 1.5rem;
   font-weight: 600;
+  margin: 0;
+}
+
+.version-text {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.25rem;
+  font-style: italic;
+  text-align: left;
 }
 
 .language-selector {
@@ -64,7 +78,7 @@
   background: rgba(255, 255, 255, 0.1);
   border: none;
   color: white;
-  padding: 0.25rem 0.5rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.8rem;
@@ -451,42 +465,6 @@ header h1 {
   background: #e0e0e0;
 }
 
-@media (max-width: 768px) {
-  .dashboard-container {
-    flex-direction: column;
-  }
-  
-  .sidebar {
-    width: 100%;
-    min-height: auto;
-    padding: 1rem;
-  }
-  
-  nav {
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-  }
-  
-  nav button {
-    white-space: nowrap;
-  }
-  
-  .user-profile {
-    display: none;
-  }
-  
-  .main-content {
-    padding: 1.5rem;
-  }
-  
-  .dashboard-cards {
-    grid-template-columns: 1fr;
-  }
-}
-
-
-
 .action-button {
   display: inline-flex;
   align-items: center;
@@ -523,30 +501,36 @@ header h1 {
   margin-bottom: 1rem;
 }
 
-
-.version-text {
-  font-size: 0.8rem;
-  color: #333;
-  margin-top: 1rem;
-  text-align: left; /* moved text to left */
-  font-style: italic;
-  white-space: nowrap; /* forces text to remain on one line */
-  max-width: 100%;
-  position: relative;
-  top: 15px;
-  right: 90px;
-}
-
-
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-}
-
-.header-info h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 1rem;
+  }
+  
+  nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+  
+  nav button {
+    white-space: nowrap;
+  }
+  
+  .user-profile {
+    display: none;
+  }
+  
+  .main-content {
+    padding: 1.5rem;
+  }
+  
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
 }

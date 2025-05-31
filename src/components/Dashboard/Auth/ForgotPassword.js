@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { auth, sendResetEmail } from '../firebase';
+import { auth, sendResetEmail } from '../../../firebase';
 import { useNavigate } from 'react-router-dom';
-import '../App.css';
+import '../../../styles/ForgotPassword.css'; // Adjust the path as necessary
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -53,6 +53,7 @@ const ForgotPassword = () => {
 
   return (
     <div className="auth-container">
+      <img alt='logo' src='favicon.png' className='logo-acc'/>
       <div className="auth-box">
         <div className="language-selector">
           <button onClick={() => setLanguage('english')}>EN</button>

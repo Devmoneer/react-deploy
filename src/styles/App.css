@@ -111,31 +111,8 @@ body {
 }
 
 /* Language Selector */
-.language-selector {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
 
-.language-selector button {
-  background: none;
-  border: none;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.8rem;
-  color: var(--subtext-color);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s;
-}
 
-.language-selector button.active {
-  background-color: #e2e8f0;
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-/* Form Styles */
 .auth-form {
   display: flex;
   flex-direction: column;
