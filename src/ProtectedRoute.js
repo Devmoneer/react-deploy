@@ -3,14 +3,19 @@ import { useAuth } from './AuthContext';
 import { useEffect } from 'react';
 
 const ProtectedRoute = ({ children }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!currentUser) {
+    if (!loading && !currentUser) {
       navigate('/login');
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, loading, navigate]);
+
+  // While still loading the auth state, render a loading indicator
+  if (loading) {
+    return <div className="loading-screen">Please wait, loading your data...</div>;
+  }
 
   return currentUser ? children : null;
 };

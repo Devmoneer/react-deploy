@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { auth, db } from '../firebase';
-import { doc, getDoc, collection, getDocs, query, where, addDoc, deleteDoc, updateDoc, setDoc } from 'firebase/firestore';
-import { signOut, createUserWithEmailAndPassword, sendEmailVerification, deleteUser } from 'firebase/auth';
+import { doc, getDoc, collection, getDocs, query, where, deleteDoc, setDoc, addDoc } from 'firebase/firestore';
+import { signOut, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import '../dashboard.css';
-import { FiPieChart, FiDollarSign, FiFileText, FiSettings, FiUser, FiLogOut, FiPlus, FiTrash2, FiEdit } from 'react-icons/fi';
+import { FiPieChart, FiDollarSign, FiFileText, FiSettings, FiUser, FiLogOut, FiPlus, FiTrash2 } from 'react-icons/fi';
 import { FaUserShield, FaUserTie } from 'react-icons/fa';
 
 const Dashboard = () => {
@@ -17,19 +17,27 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showSettings, setShowSettings] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [newRole, setNewRole] = useState('');
+  const [showAddTransactionModal, setShowAddTransactionModal] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
   const [newUser, setNewUser] = useState({
     email: '',
     username: '',
     password: '',
     role: 'accountant'
   });
+  const [newTransaction, setNewTransaction] = useState({
+    description: '',
+    amount: 0,
+    type: 'revenue',
+    category: '',
+    date: new Date().toISOString().split('T')[0]
+  });
 
   const navigate = useNavigate();
 
-  const translations = {
+  const translations = useMemo(() => ({
     english: {
       welcome: 'Welcome to ACCDPU',
       ownerWelcome: 'Owner Dashboard',
@@ -47,6 +55,11 @@ const Dashboard = () => {
       profit: 'Profit',
       recentTransactions: 'Recent Transactions',
       addTransaction: 'Add Transaction',
+      description: 'Description',
+      amount: 'Amount',
+      transactionType: 'Type',
+      category: 'Category',
+      date: 'Date',
       role: 'Role',
       owner: 'Company Owner',
       accountant: 'Accountant',
@@ -69,7 +82,12 @@ const Dashboard = () => {
       userAdded: 'User added successfully',
       userDeleted: 'User deleted successfully',
       userUpdated: 'User updated successfully',
-      error: 'Error occurred'
+      transactionAdded: 'Transaction added successfully',
+      error: 'Error occurred',
+      deleteConfirm: 'Are you sure you want to delete this user?',
+      noTransactions: 'No transactions found',
+      noUsers: 'No users found',
+      loading: 'Loading...'
     },
     arabic: {
       welcome: 'مرحبًا بكم في ACCDPU',
@@ -86,6 +104,11 @@ const Dashboard = () => {
       profit: 'الربح',
       recentTransactions: 'المعاملات الأخيرة',
       addTransaction: 'إضافة معاملة',
+      description: 'الوصف',
+      amount: 'المبلغ',
+      transactionType: 'النوع',
+      category: 'الفئة',
+      date: 'التاريخ',
       role: 'الدور',
       owner: 'مالك الشركة',
       accountant: 'محاسب',
@@ -108,7 +131,12 @@ const Dashboard = () => {
       userAdded: 'تمت إضافة المستخدم بنجاح',
       userDeleted: 'تم حذف المستخدم بنجاح',
       userUpdated: 'تم تحديث المستخدم بنجاح',
-      error: 'حدث خطأ'
+      transactionAdded: 'تمت إضافة المعاملة بنجاح',
+      error: 'حدث خطأ',
+      deleteConfirm: 'هل أنت متأكد أنك تريد حذف هذا المستخدم؟',
+      noTransactions: 'لا توجد معاملات',
+      noUsers: 'لا يوجد مستخدمين',
+      loading: 'جار التحميل...'
     },
     sorani: {
       welcome: 'بەخێربێن بۆ ACCDPU',
@@ -125,6 +153,11 @@ const Dashboard = () => {
       profit: 'قازانج',
       recentTransactions: 'مامەڵەکانی دوایین',
       addTransaction: 'مامەڵەی زیاد بکە',
+      description: 'پێناسە',
+      amount: 'بڕ',
+      transactionType: 'جۆر',
+      category: 'هاوپۆل',
+      date: 'بەروار',
       role: 'ڕۆڵ',
       owner: 'خاوەن کۆمپانیا',
       accountant: 'ژمێریار',
@@ -147,22 +180,36 @@ const Dashboard = () => {
       userAdded: 'بەکارهێنەر بە سەرکەوتوویی زیادکرا',
       userDeleted: 'بەکارهێنەر بە سەرکەوتوویی سڕایەوە',
       userUpdated: 'بەکارهێنەر بە سەرکەوتوویی نوێکرایەوە',
-      error: 'هەڵەیەک ڕوویدا'
+      transactionAdded: 'مامەڵە بە سەرکەوتوویی زیادکرا',
+      error: 'هەڵەیەک ڕوویدا',
+      deleteConfirm: 'دڵنیای لە سڕینەوەی ئەم بەکارهێنەرە؟',
+      noTransactions: 'هیچ مامەڵەیەک نیە',
+      noUsers: 'هیچ بەکارهێنەرێک نیە',
+      loading: 'جارێ...'
     }
-  };
+  }), []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        setDataLoading(true);
         if (currentUser) {
-          // Check if email is verified
           if (!currentUser.emailVerified) {
             navigate('/login');
             return;
           }
 
-          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const transactionsQuery = query(
+            collection(db, "transactions"),
+            where("userId", "==", currentUser.uid)
+          );
+
+          const [userDoc, transactionsSnapshot] = await Promise.all([
+            getDoc(userDocRef),
+            getDocs(transactionsQuery)
+          ]);
+
           if (!userDoc.exists()) {
             navigate('/login');
             return;
@@ -171,22 +218,14 @@ const Dashboard = () => {
           const userData = userDoc.data();
           setUserData(userData);
 
-          // Fetch transactions
-          const transactionsQuery = query(
-            collection(db, "transactions"),
-            where("userId", "==", currentUser.uid)
-          );
-          const transactionsSnapshot = await getDocs(transactionsQuery);
           const transactionsData = transactionsSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
           }));
           setAccountingData(transactionsData);
 
-          // Fetch users if owner
           if (userData.role === 'owner') {
-            const usersQuery = query(collection(db, "users"));
-            const usersSnapshot = await getDocs(usersQuery);
+            const usersSnapshot = await getDocs(collection(db, "users"));
             const usersData = usersSnapshot.docs.map(doc => ({
               id: doc.id,
               ...doc.data()
@@ -198,12 +237,12 @@ const Dashboard = () => {
         console.error("Error fetching data: ", error);
         setError(translations[language].error);
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
 
     fetchData();
-  }, [currentUser, navigate, language]);
+  }, [currentUser, navigate, language, translations]);
 
   const handleLogout = async () => {
     try {
@@ -216,22 +255,48 @@ const Dashboard = () => {
   };
 
   const calculateTotals = () => {
-    const revenue = accountingData.reduce((sum, item) => item.type === 'revenue' ? sum + item.amount : sum, 0);
-    const expenses = accountingData.reduce((sum, item) => item.type === 'expense' ? sum + item.amount : sum, 0);
+    const revenue = accountingData.reduce((sum, item) => item.type === 'revenue' ? sum + Number(item.amount) : sum, 0);
+    const expenses = accountingData.reduce((sum, item) => item.type === 'expense' ? sum + Number(item.amount) : sum, 0);
     const profit = revenue - expenses;
     return { revenue, expenses, profit };
   };
 
-  const handleSaveRole = async () => {
+  const handleAddTransaction = async () => {
     try {
       setLoading(true);
-      await updateDoc(doc(db, "users", currentUser.uid), { role: newRole });
-      setUserData({ ...userData, role: newRole });
-      setShowSettings(false);
-      alert(translations[language].userUpdated);
+      const transactionData = {
+        ...newTransaction,
+        amount: Number(newTransaction.amount),
+        userId: currentUser.uid,
+        createdAt: new Date()
+      };
+
+      await addDoc(collection(db, "transactions"), transactionData);
+      
+      // Refresh transactions
+      const transactionsQuery = query(
+        collection(db, "transactions"),
+        where("userId", "==", currentUser.uid)
+      );
+      const transactionsSnapshot = await getDocs(transactionsQuery);
+      const transactionsData = transactionsSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setAccountingData(transactionsData);
+      
+      setNewTransaction({
+        description: '',
+        amount: 0,
+        type: 'revenue',
+        category: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+      setShowAddTransactionModal(false);
+      alert(translations[language].transactionAdded);
     } catch (error) {
-      console.error("Error updating role: ", error);
-      setError(translations[language].error);
+      console.error("Error adding transaction: ", error);
+      setError(error.message || translations[language].error);
     } finally {
       setLoading(false);
     }
@@ -286,8 +351,6 @@ const Dashboard = () => {
     if (window.confirm(translations[language].deleteConfirm)) {
       try {
         setLoading(true);
-        // Note: In production, you would need admin privileges to delete users
-        // This is a simplified version
         await deleteDoc(doc(db, "users", userId));
         setUsers(users.filter(user => user.id !== userId));
         alert(translations[language].userDeleted);
@@ -301,8 +364,8 @@ const Dashboard = () => {
   };
 
   const renderTabContent = () => {
-    if (loading) {
-      return <div className="loading-spinner">Loading...</div>;
+    if (dataLoading) {
+      return <div className="loading-spinner">{translations[language].loading}</div>;
     }
 
     switch (activeTab) {
@@ -336,34 +399,41 @@ const Dashboard = () => {
             <div className="accounting-section">
               <div className="section-header">
                 <h2>{translations[language].recentTransactions}</h2>
-                <button className="add-button">
+                <button 
+                  className="add-button"
+                  onClick={() => setShowAddTransactionModal(true)}
+                >
                   <FiPlus /> {translations[language].addTransaction}
                 </button>
               </div>
               
               <div className="transactions-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Description</th>
-                      <th>Amount</th>
-                      <th>Type</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {accountingData.slice(0, 5).map(transaction => (
-                      <tr key={transaction.id}>
-                        <td>{new Date(transaction.date).toLocaleDateString()}</td>
-                        <td>{transaction.description}</td>
-                        <td>${transaction.amount.toLocaleString()}</td>
-                        <td className={`type-${transaction.type}`}>
-                          {transaction.type === 'revenue' ? translations[language].revenue : translations[language].expenses}
-                        </td>
+                {accountingData.length === 0 ? (
+                  <p className="no-data">{translations[language].noTransactions}</p>
+                ) : (
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>{translations[language].date}</th>
+                        <th>{translations[language].description}</th>
+                        <th>{translations[language].amount}</th>
+                        <th>{translations[language].transactionType}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {accountingData.slice(0, 5).map(transaction => (
+                        <tr key={transaction.id}>
+                          <td>{new Date(transaction.date).toLocaleDateString()}</td>
+                          <td>{transaction.description}</td>
+                          <td>${Number(transaction.amount).toLocaleString()}</td>
+                          <td className={`type-${transaction.type}`}>
+                            {transaction.type === 'revenue' ? translations[language].revenue : translations[language].expenses}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           </>
@@ -371,33 +441,45 @@ const Dashboard = () => {
       case 'accounting':
         return (
           <div className="accounting-section">
-            <h2>{translations[language].allTransactions}</h2>
-            <div className="transactions-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Type</th>
-                    <th>Category</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {accountingData.map(transaction => (
-                    <tr key={transaction.id}>
-                      <td>{new Date(transaction.date).toLocaleDateString()}</td>
-                      <td>{transaction.description}</td>
-                      <td>${transaction.amount.toLocaleString()}</td>
-                      <td className={`type-${transaction.type}`}>
-                        {transaction.type === 'revenue' ? translations[language].revenue : translations[language].expenses}
-                      </td>
-                      <td>{transaction.category || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="section-header">
+              <h2>{translations[language].allTransactions}</h2>
+              <button 
+                className="add-button"
+                onClick={() => setShowAddTransactionModal(true)}
+              >
+                <FiPlus /> {translations[language].addTransaction}
+              </button>
             </div>
+            {accountingData.length === 0 ? (
+              <p className="no-data">{translations[language].noTransactions}</p>
+            ) : (
+              <div className="transactions-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>{translations[language].date}</th>
+                      <th>{translations[language].description}</th>
+                      <th>{translations[language].amount}</th>
+                      <th>{translations[language].transactionType}</th>
+                      <th>{translations[language].category}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {accountingData.map(transaction => (
+                      <tr key={transaction.id}>
+                        <td>{new Date(transaction.date).toLocaleDateString()}</td>
+                        <td>{transaction.description}</td>
+                        <td>${Number(transaction.amount).toLocaleString()}</td>
+                        <td className={`type-${transaction.type}`}>
+                          {transaction.type === 'revenue' ? translations[language].revenue : translations[language].expenses}
+                        </td>
+                        <td>{transaction.category || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         );
       case 'reports':
@@ -439,38 +521,42 @@ const Dashboard = () => {
               )}
             </div>
             
-            <div className="transactions-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>{translations[language].username}</th>
-                    <th>{translations[language].email}</th>
-                    <th>{translations[language].role}</th>
-                    {userData?.role === 'owner' && <th>Actions</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map(user => (
-                    <tr key={user.id}>
-                      <td>{user.username}</td>
-                      <td>{user.email}</td>
-                      <td>{user.role === 'owner' ? translations[language].owner : translations[language].accountant}</td>
-                      {userData?.role === 'owner' && (
-                        <td>
-                          <button 
-                            className="action-button delete"
-                            onClick={() => handleDeleteUser(user.id)}
-                            disabled={user.role === 'owner'}
-                          >
-                            <FiTrash2 /> {translations[language].delete}
-                          </button>
-                        </td>
-                      )}
+            {users.length === 0 ? (
+              <p className="no-data">{translations[language].noUsers}</p>
+            ) : (
+              <div className="transactions-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>{translations[language].username}</th>
+                      <th>{translations[language].email}</th>
+                      <th>{translations[language].role}</th>
+                      {userData?.role === 'owner' && <th>Actions</th>}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {users.map(user => (
+                      <tr key={user.id}>
+                        <td>{user.username}</td>
+                        <td>{user.email}</td>
+                        <td>{user.role === 'owner' ? translations[language].owner : translations[language].accountant}</td>
+                        {userData?.role === 'owner' && (
+                          <td>
+                            <button 
+                              className="action-button delete"
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={user.role === 'owner'}
+                            >
+                              <FiTrash2 /> {translations[language].delete}
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         );
       default:
@@ -483,6 +569,7 @@ const Dashboard = () => {
       <div className="sidebar">
         <div className="sidebar-header">
           <h2>ACCDPU</h2>
+          <p className="version-text">Version App 0.0.1</p>
           <div className="language-selector">
             <button 
               onClick={() => setLanguage('english')} 
@@ -535,9 +622,9 @@ const Dashboard = () => {
               {userData?.role === 'owner' ? <FaUserShield /> : <FaUserTie />}
             </div>
             <div>
-              <div className="username">{userData?.username}</div>
+              <div className="username">{userData?.username || translations[language].loading}</div>
               <div className="user-role">
-                {translations[language].role}: {userData ? (userData.role === 'owner' ? translations[language].owner : translations[language].accountant) : ''}
+                {translations[language].role}: {userData ? (userData.role === 'owner' ? translations[language].owner : translations[language].accountant) : translations[language].loading}
               </div>
             </div>
           </div>
@@ -553,9 +640,11 @@ const Dashboard = () => {
       <div className="main-content">
         <header>
           <h1>
-            {userData && userData.role === 'owner'
-              ? translations[language].ownerWelcome
-              : translations[language].accountantWelcome}
+            {userData ? (
+              userData.role === 'owner'
+                ? translations[language].ownerWelcome
+                : translations[language].accountantWelcome
+            ) : translations[language].welcome}
           </h1>
           <button onClick={handleLogout} className="logout-button">
             <FiLogOut /> {translations[language].logout}
@@ -606,17 +695,88 @@ const Dashboard = () => {
                 value={newUser.password}
                 onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                 placeholder="••••••••"
+                minLength="6"
               />
             </div>
             <div className="modal-actions">
               <button 
                 onClick={handleAddUser}
-                disabled={loading}
+                disabled={loading || !newUser.username || !newUser.email || !newUser.password}
               >
-                {loading ? 'Adding...' : translations[language].save}
+                {loading ? translations[language].loading : translations[language].save}
               </button>
               <button 
                 onClick={() => setShowAddUserModal(false)}
+                disabled={loading}
+              >
+                {translations[language].cancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Transaction Modal */}
+      {showAddTransactionModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>{translations[language].addTransaction}</h2>
+            <div className="form-group">
+              <label>{translations[language].description}</label>
+              <input
+                type="text"
+                value={newTransaction.description}
+                onChange={(e) => setNewTransaction({...newTransaction, description: e.target.value})}
+                placeholder={translations[language].description}
+              />
+            </div>
+            <div className="form-group">
+              <label>{translations[language].amount}</label>
+              <input
+                type="number"
+                value={newTransaction.amount}
+                onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})}
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div className="form-group">
+              <label>{translations[language].transactionType}</label>
+              <select
+                value={newTransaction.type}
+                onChange={(e) => setNewTransaction({...newTransaction, type: e.target.value})}
+              >
+                <option value="revenue">{translations[language].revenue}</option>
+                <option value="expense">{translations[language].expenses}</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>{translations[language].category}</label>
+              <input
+                type="text"
+                value={newTransaction.category}
+                onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
+                placeholder={translations[language].category}
+              />
+            </div>
+            <div className="form-group">
+              <label>{translations[language].date}</label>
+              <input
+                type="date"
+                value={newTransaction.date}
+                onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})}
+              />
+            </div>
+            <div className="modal-actions">
+              <button 
+                onClick={handleAddTransaction}
+                disabled={loading || !newTransaction.description || !newTransaction.amount}
+              >
+                {loading ? translations[language].loading : translations[language].save}
+              </button>
+              <button 
+                onClick={() => setShowAddTransactionModal(false)}
                 disabled={loading}
               >
                 {translations[language].cancel}
@@ -629,4 +789,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard
+export default Dashboard;

@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { auth } from '../firebase';
-import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase';
 import '../App.css';
 
 function Login() {
@@ -72,27 +70,7 @@ function Login() {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             console.log('Authentication successful', userCredential.user);
             
-            // Check email verification
-            if (!userCredential.user.emailVerified) {
-                console.log('Email not verified - sending new verification');
-                await sendEmailVerification(userCredential.user);
-                setError(translations[language].verifyError);
-                setLoading(false);
-                return;
-            }
-            
-            // Check if user exists in Firestore
-            const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
-            console.log('Firestore user document:', userDoc.exists() ? userDoc.data() : 'Not found');
-            
-            if (!userDoc.exists()) {
-                console.error('User document missing in Firestore');
-                setError(translations[language].docError);
-                setLoading(false);
-                return;
-            }
-            
-            // Successful login - navigate to dashboard
+            // Directly navigate to dashboard on fast login
             navigate('/dashboard');
         } catch (err) {
             console.error('Login error:', err.code, err.message);
@@ -198,4 +176,4 @@ function Login() {
     );
 }
 
-export default Login;
+export default Login
