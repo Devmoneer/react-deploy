@@ -1,8 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getDatabase } from 'firebase/database';  // Added for Realtime Database
-
+import { getDatabase } from 'firebase/database';
+import { getStorage } from 'firebase/storage'; // Added import
 
 const firebaseConfig = {
   apiKey: "AIzaSyBvnm_vCvuImaPwbbLniykutJsjdU7kMMI",
@@ -17,5 +17,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const realtimeDb = getDatabase(app); // Firebase Realtime Database instance
+export const realtimeDb = getDatabase(app);
+export const storage = getStorage(app); // Exporting storage instance
 export const sendResetEmail = sendPasswordResetEmail;

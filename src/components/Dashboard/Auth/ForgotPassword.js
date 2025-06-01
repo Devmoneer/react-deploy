@@ -34,6 +34,14 @@ const ForgotPassword = () => {
       back: 'بگەڕێوە بۆ چوونەژوورەوە',
       success: 'ئیمەیلی دووبارەدانانەوە نێردرا!',
       error: 'هەڵە لە ناردنی ئیمەیل'
+    },
+     badini: {
+      title: 'دووبارە دانانا پەیڤا نهێنی',
+      email: 'ئیمێل',
+      reset: 'فرێکرنا لینکی بۆ ئیمێلی',
+      back: 'زفرین بۆ چووناژوور',
+      success: '! ب سەرکەفتیانە بۆ ئیمێلی هاتە فرێکرن',
+      error: 'شاشی د فرێکرنا ئیمێلی دا'
     }
   };
 
@@ -55,10 +63,11 @@ const ForgotPassword = () => {
     <div className="auth-container">
       <img alt='logo' src='favicon.png' className='logo-acc'/>
       <div className="auth-box">
-        <div className="language-selector">
+        <div className="language-selector-fg">
           <button onClick={() => setLanguage('english')}>EN</button>
           <button onClick={() => setLanguage('arabic')}>AR</button>
           <button onClick={() => setLanguage('sorani')}>KU</button>
+          <button onClick={() => setLanguage('badini')}>KU-BA</button>
         </div>
         
         <h2>{t.title}</h2>

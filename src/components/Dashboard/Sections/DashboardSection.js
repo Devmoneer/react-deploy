@@ -1,8 +1,8 @@
 import React from 'react';
 import { FiDollarSign, FiPlus } from 'react-icons/fi';
-import { calculateTotals } from '../../Dashboard/utils/calculations';  // updated path
-import { translations } from '../../Dashboard/utils/translations';         // updated path
-// ...existing code...
+import { calculateTotals } from '../../Dashboard/utils/calculations';
+import { translations } from '../../Dashboard/utils/translations';
+
 const DashboardSection = ({ accountingData, language, dataLoading, setShowAddTransactionModal }) => {
   const t = translations[language];
   const { revenue, expenses, profit } = calculateTotals(accountingData);
@@ -47,8 +47,39 @@ const DashboardSection = ({ accountingData, language, dataLoading, setShowAddTra
             <FiPlus /> {t.addTransaction}
           </button>
         </div>
-        
-        {/* Transactions table... */}
+
+        <div className="transactions-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>{t.description}</th>
+                <th>{t.amount}</th>
+                <th>{t.transactionType}</th>
+                <th>{t.category}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {accountingData.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="no-data">
+                    {t.noTransactions || 'No transactions found'}
+                  </td>
+                </tr>
+              ) : (
+                accountingData.map(transaction => (
+                  <tr key={transaction.id}>
+                    <td>{new Date(transaction.date).toLocaleDateString()}</td>
+                    <td>{transaction.description}</td>
+                    <td>${Number(transaction.amount).toLocaleString()}</td>
+                    <td>{transaction.type === 'revenue' ? t.revenue : t.expenses}</td>
+                    <td>{transaction.category || '-'}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );

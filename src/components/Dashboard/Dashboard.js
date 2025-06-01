@@ -10,12 +10,6 @@ const Dashboard = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
-
-  useEffect(() => {
-    if (!currentUser) {
-      navigate('/login');
-    }
-  }, [currentUser, navigate]);
   const [accountingData, setAccountingData] = useState([]);
   const [users, setUsers] = useState([]);
   const [language, setLanguage] = useState('english');
@@ -23,6 +17,12 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
+
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+    }
+  }, [currentUser, navigate]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -71,6 +71,7 @@ const Dashboard = () => {
         setLoading={setLoading}
         setAccountingData={setAccountingData}
         setUsers={setUsers}
+        setUserData={setUserData}  // New prop for settings
       />
     </div>
   );

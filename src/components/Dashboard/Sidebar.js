@@ -55,6 +55,12 @@ const Sidebar = ({ userData, language, setLanguage, activeTab, setActiveTab }) =
             <FiUser /> {t.manageUsers}
           </button>
         )}
+        <button 
+          className={activeTab === 'settings' ? 'active' : ''} 
+          onClick={() => setActiveTab('settings')}
+        >
+          <FiSettings /> {t.settings}
+        </button>
       </nav>
       
       <div className="user-profile">

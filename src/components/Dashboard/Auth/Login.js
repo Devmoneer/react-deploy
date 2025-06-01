@@ -92,7 +92,7 @@ function Login() {
         <div className="auth-page-container">
             <div className="auth-form-container">
                 <div className="auth-box">
-                    <div className="language-selector">
+                    <div className="language-selector-lg">
                         <button 
                             onClick={() => setLanguage('english')}
                             className={language === 'english' ? 'active' : ''}
@@ -164,7 +164,7 @@ function Login() {
             
             <div className="auth-illustration">
                 <img 
-                    src={`${process.env.PUBLIC_URL}/images/4957136.jpg`} 
+                    src={`${process.env.PUBLIC_URL}/images/favicon.png`} 
                     alt="Login illustration" 
                 />
                 <div className="illustration-overlay">

@@ -244,7 +244,7 @@ const Register = () => {
             
             <div className="auth-illustration">
                 <img 
-                    src={`${process.env.PUBLIC_URL}/images/4957136.jpg`} 
+                    src={`${process.env.PUBLIC_URL}/images/favicon.png`} 
                     alt="Register illustration" 
                 />
                 <div className="illustration-overlay">

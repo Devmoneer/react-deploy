@@ -9,6 +9,9 @@ const UsersSection = ({ users, userData, language, dataLoading, setShowAddUserMo
     return <div className="loading-spinner">{t.loading}</div>;
   }
 
+  // Filter to show only accountants
+  const filteredUsers = users.filter(user => user.role !== 'owner');
+
   return (
     <div className="accounting-section">
       <div className="section-header">
@@ -23,7 +26,7 @@ const UsersSection = ({ users, userData, language, dataLoading, setShowAddUserMo
         )}
       </div>
       
-      {users.length === 0 ? (
+      {filteredUsers.length === 0 ? (
         <p className="no-data">{t.noUsers}</p>
       ) : (
         <div className="transactions-table">
@@ -37,17 +40,16 @@ const UsersSection = ({ users, userData, language, dataLoading, setShowAddUserMo
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
+              {filteredUsers.map(user => (
                 <tr key={user.id}>
                   <td>{user.username}</td>
                   <td>{user.email}</td>
-                  <td>{user.role === 'owner' ? t.owner : t.accountant}</td>
+                  <td>{t.accountant}</td>
                   {userData?.role === 'owner' && (
                     <td>
                       <button 
                         className="action-button delete"
                         onClick={() => handleDeleteUser(user.id)}
-                        disabled={user.role === 'owner'}
                       >
                         <FiTrash2 /> {t.delete}
                       </button>
