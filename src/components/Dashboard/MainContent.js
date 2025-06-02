@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signOut, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { auth, db } from '../../firebase';
-import { addDoc, collection, setDoc, doc, deleteDoc } from 'firebase/firestore';
+import { addDoc, collection, setDoc, doc, } from 'firebase/firestore';
 import DashboardSection from './Sections/DashboardSection';
 import AccountingSection from './Sections/AccountingSection';
 import ReportsSection from './Sections/ReportsSection';
-import UsersSection from './Sections/UsersSection';
 import SettingsSection from './Sections/SettingSection';
 import AddTransactionModal from './Modals/AddTransactionModal';
 import AddUserModal from './Modals/AddUserModal';
@@ -111,18 +110,7 @@ const MainContent = ({
   };
 
   // Handler to delete a user document from Firestore and update local state
-  const handleDeleteUser = async (userId) => {
-    try {
-      setLoading(true);
-      await deleteDoc(doc(db, "users", userId));
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-      setLoading(false);
-    } catch (err) {
-      console.error("Error deleting user:", err);
-      setError(err.message);
-      setLoading(false);
-    }
-  };
+  
 
   const renderSection = () => {
     switch (activeTab) {
@@ -145,18 +133,7 @@ const MainContent = ({
           />
         );
       case 'reports':
-        return <ReportsSection language={language} />;
-      case 'users':
-        return (
-          <UsersSection 
-            users={users}
-            userData={userData}
-            language={language}
-            dataLoading={dataLoading}
-            setShowAddUserModal={setShowAddUserModal} // Pass modal setter
-            handleDeleteUser={handleDeleteUser}  // Updated to pass delete handler
-          />
-        );
+        return <ReportsSection language={language} />;    
       case 'settings':
         return (
           <SettingsSection 

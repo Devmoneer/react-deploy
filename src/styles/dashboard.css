@@ -43,6 +43,12 @@
   color: white;
 }
 
+.sidebar[dir="rtl"] {
+  /* Adjusted for RTL support */
+  background-color: #fff;
+  color: #333;
+}
+
 .sidebar-header {
   display: flex;
   justify-content: space-between;
@@ -83,6 +89,8 @@
   cursor: pointer;
   font-size: 0.8rem;
   transition: var(--transition);
+  font-family: 0.7rem;
+  padding: 0.25rem 0.4rem;
 }
 
 .language-selector button.active {
@@ -501,6 +509,17 @@ header h1 {
   margin-bottom: 1rem;
 }
 
+.dashboard-container[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Example adjustment for the sidebar language selectors or nav buttons */
+.sidebar[dir="rtl"] nav button {
+  justify-content: flex-end;
+}
+
+
 @media (max-width: 768px) {
   .dashboard-container {
     flex-direction: column;
@@ -533,4 +552,142 @@ header h1 {
   .dashboard-cards {
     grid-template-columns: 1fr;
   }
+}
+
+
+/* Add these to your dashboard.css */
+/* RTL specific styles */
+.dashboard-container[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Sidebar adjustments for RTL */
+.sidebar[dir="rtl"] {
+  text-align: right;
+}
+
+.sidebar[dir="rtl"] nav button {
+  justify-content: flex-end;
+  padding-right: 1rem;
+}
+
+.sidebar[dir="rtl"] .language-selector {
+  flex-direction: row-reverse;
+}
+
+/* Table adjustments for RTL */
+[dir="rtl"] .transactions-table th,
+[dir="rtl"] .transactions-table td {
+  text-align: right;
+}
+
+/* Form adjustments for RTL */
+[dir="rtl"] .form-group label {
+  text-align: right;
+  display: block;
+}
+
+/* Modal and card adjustments */
+[dir="rtl"] .settings-content,
+[dir="rtl"] .card {
+  text-align: right;
+}
+
+/* Button icons in RTL */
+[dir="rtl"] .add-button svg,
+[dir="rtl"] .action-button svg {
+  margin-left: 0;
+  margin-right: 0.3rem;
+}
+
+/* Adjust the card icon position for RTL */
+[dir="rtl"] .card-icon {
+  right: auto;
+  left: 1rem;
+}
+
+/* Settings sidebar adjustments */
+[dir="rtl"] .settings-sidebar {
+  border-right: none;
+  border-left: 1px solid #eee;
+}
+
+/* Input fields in RTL */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+}
+
+/* Toggle switches in RTL */
+[dir="rtl"] .toggle-switch {
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+
+
+
+/* Remove or comment out the RTL background override for sidebar */
+
+
+/* Ensure the RTL adjustments apply only to content */
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* (Optional) If you want the sidebar text to remain left aligned */
+.dashboard-container .sidebar {
+  text-align: left;
+}
+
+.dashboard-container.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* If needed, adjust inner components for RTL without affecting the sidebar */
+
+
+
+/* Common transition class for smooth effects */
+.transition {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Apply transition to navigation buttons, add, action, and settings buttons */
+nav button,
+.add-button,
+.action-button,
+.settings-button {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Hover effect for nav buttons */
+nav button:hover {
+  transform: scale(1.05);
+}
+
+/* Hover effect for add button */
+.add-button:hover {
+  background-color: rgba(76, 175, 80, 0.8);  /* Adjust color as needed */
+}
+
+/* Hover effect for action buttons */
+.action-button:hover {
+  opacity: 0.85;
+}
+
+/* Hover effect for settings button */
+.settings-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Transition for modals and cards */
+.settings-modal,
+.auth-box,
+.card {
+  transition: all 0.3s ease-in-out;
 }

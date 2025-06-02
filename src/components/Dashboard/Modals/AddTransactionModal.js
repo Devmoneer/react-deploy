@@ -1,5 +1,6 @@
 import React from 'react';
 import { translations } from '../utils/translations';
+import '../../../styles/AddTransactionModal.css';
 
 const AddTransactionModal = ({ 
   show, 

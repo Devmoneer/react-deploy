@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { auth, db } from '../../../firebase';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import '../../../styles/App.css';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -11,10 +12,14 @@ const Register = () => {
     const [role, setRole] = useState('accountant');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    // New state for accountant invite code
+    const [inviteCodeInput, setInviteCodeInput] = useState('');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [language, setLanguage] = useState('english');
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const navigate = useNavigate();
 
     const translations = {
@@ -34,7 +39,8 @@ const Register = () => {
             welcome: 'Get Started',
             subtitle: 'Create an account to access all features',
             passwordError: 'Password must be at least 6 characters',
-            docError: 'Failed to create user profile'
+            docError: 'Failed to create user profile',
+            inviteCodeLabel: 'Invite Code:'
         },
         arabic: {
             title: 'إنشاء حساب',
@@ -52,7 +58,8 @@ const Register = () => {
             welcome: 'ابدأ رحلتك',
             subtitle: 'أنشئ حسابًا للوصول إلى جميع الميزات',
             passwordError: 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل',
-            docError: 'فشل إنشاء ملف تعريف المستخدم'
+            docError: 'فشل إنشاء ملف تعريف المستخدم',
+            inviteCodeLabel: 'رمز الدعوة:'
         },
         sorani: {
             title: 'درووستکردنی هەژمار',
@@ -70,23 +77,43 @@ const Register = () => {
             welcome: 'دەستپێبکە',
             subtitle: 'هەژمارێک درووست بکە بۆ چوونە ناو هەموو تایبەتمەندییەکان',
             passwordError: 'وشەی نهێنی پێویستە کەمترین 6 پیت بێت',
-            docError: 'سەرکەوتوو نەبوو لە درووستکردنی پرۆفایلی بەکارهێنەر'
+            docError: 'سەرکەوتوو نەبوو لە درووستکردنی پرۆفایلی بەکارهێنەر',
+            inviteCodeLabel: 'کۆدی بانگەواز:'
         }
+    };
+
+    // Function to fetch the invite code stored by the owner
+    const fetchInviteCode = async () => {
+        // The invite code is assumed to be stored in a document in Firestore,
+        // for example in the "settings" collection under the document "inviteSettings"
+        const settingsRef = doc(db, 'settings', 'inviteSettings');
+        const docSnap = await getDoc(settingsRef);
+        if (docSnap.exists()) {
+            return docSnap.data().inviteCode; // Field where the owner stored the code
+        }
+        return null;
     };
 
     const handleRegister = async (e) => {
         e.preventDefault();
         
-        // Validate passwords match
         if (password !== confirmPassword) {
             setError(translations[language].error);
             return;
         }
-        
-        // Validate password length
+
         if (password.length < 6) {
             setError(translations[language].passwordError);
             return;
+        }
+
+        // For accountant, validate the invite code against the stored one
+        if (role === 'accountant') {
+            const storedInviteCode = await fetchInviteCode();
+            if (!storedInviteCode || inviteCodeInput.trim() !== storedInviteCode) {
+                setError("Invalid invite code");
+                return;
+            }
         }
 
         setIsLoading(true);
@@ -94,14 +121,10 @@ const Register = () => {
         setSuccess('');
 
         try {
-            // Create user in Firebase Auth
+            // Create user via Firebase Auth
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            console.log('Auth user created:', userCredential.user.uid);
-            
             // Send verification email
             await sendEmailVerification(userCredential.user);
-            console.log('Verification email sent');
-            
             // Create user document in Firestore
             const userDocRef = doc(db, "users", userCredential.user.uid);
             await setDoc(userDocRef, {
@@ -111,11 +134,8 @@ const Register = () => {
                 emailVerified: false,
                 createdAt: new Date()
             });
-            console.log('Firestore document created');
-
             setSuccess(translations[language].success);
             setIsLoading(false);
-
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
@@ -140,7 +160,7 @@ const Register = () => {
         <div className="auth-page-container">
             <div className="auth-form-container">
                 <div className="auth-box">
-                    <div className="language-selector">
+                    <div className="language-selector-lg">
                         <button 
                             onClick={() => setLanguage('english')}
                             className={language === 'english' ? 'active' : ''}
@@ -170,7 +190,7 @@ const Register = () => {
                                 type="text" 
                                 value={username} 
                                 onChange={(e) => setUsername(e.target.value)} 
-                                placeholder="john_doe"
+                                placeholder="Enter your username"
                                 required 
                             />
                         </div>
@@ -198,26 +218,76 @@ const Register = () => {
                             </select>
                         </div>
                         
+                        {/* Conditionally show invite code field for accountants */}
+                        {role === 'accountant' && (
+                            <div className="form-group">
+                                <label>{t.inviteCodeLabel || 'Invite Code'}</label>
+                                <input 
+                                    type="text"
+                                    value={inviteCodeInput}
+                                    onChange={(e) => setInviteCodeInput(e.target.value)}
+                                    placeholder="Enter Invite Code"
+                                    required
+                                />
+                            </div>
+                        )}
+
                         <div className="form-group">
                             <label>{t.password}</label>
-                            <input 
-                                type="password" 
-                                value={password} 
-                                onChange={(e) => setPassword(e.target.value)} 
-                                placeholder="••••••••"
-                                required 
-                            />
+                            <div style={{ position: 'relative' }}>
+                                <input 
+                                    type={showPassword ? "text" : "password"} 
+                                    value={password} 
+                                    onChange={(e) => setPassword(e.target.value)} 
+                                    placeholder="••••••••"
+                                    required 
+                                    style={{ paddingRight: '2.5rem' }} 
+                                />
+                                <button 
+                                  type="button" 
+                                  onClick={() => setShowPassword(prev => !prev)}
+                                  style={{
+                                      position: 'absolute',
+                                      right: '1rem',
+                                      top: '53%',
+                                      transform: 'translateY(-50%)',
+                                      background: 'none',
+                                      border: 'none',
+                                      cursor: 'pointer'
+                                  }}
+                                >
+                                  {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                                </button>
+                            </div>
                         </div>
                         
                         <div className="form-group">
                             <label>{t.confirm}</label>
-                            <input 
-                                type="password" 
-                                value={confirmPassword} 
-                                onChange={(e) => setConfirmPassword(e.target.value)} 
-                                placeholder="••••••••"
-                                required 
-                            />
+                            <div style={{ position: 'relative' }}>
+                                <input 
+                                    type={showConfirmPassword ? "text" : "password"} 
+                                    value={confirmPassword} 
+                                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                                    placeholder="••••••••"
+                                    required 
+                                    style={{ paddingRight: '2.5rem' }}
+                                />
+                                <button 
+                                  type="button" 
+                                  onClick={() => setShowConfirmPassword(prev => !prev)}
+                                  style={{
+                                      position: 'absolute',
+                                      right: '1rem',
+                                      top: '53%',
+                                      transform: 'translateY(-50%)',
+                                      background: 'none',
+                                      border: 'none',
+                                      cursor: 'pointer'
+                                  }}
+                                >
+                                  {showConfirmPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                                </button>
+                            </div>
                         </div>
                         
                         <button 

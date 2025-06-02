@@ -15,40 +15,29 @@ export const fetchDashboardData = async (currentUser) => {
   }
 
   const userData = userDoc.data();
+
+  console.log("Current user data:", userData);
+
+  // Fetch transactions for the current user (for accountants)
   let transactionsData = [];
+  const transactionsQuery = query(
+    collection(db, "transactions"),
+    where("userId", "==", currentUser.uid)
+  );
+  const transactionsSnapshot = await getDocs(transactionsQuery);
+  transactionsData = transactionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-  if (userData.role === 'owner') {
-    // If the current user is the company owner, fetch accountant transactions as well.
-    const accountantQuery = query(
-      collection(db, "users"),
-      where("role", "==", "accountant")
-    );
-    const accountantSnapshot = await getDocs(accountantQuery);
-    const accountantIds = accountantSnapshot.docs.map(doc => doc.id);
-
-    // Combine owner's id with accountant ids (Firestore "in" queries support up to 10 items)
-    const idsList = [currentUser.uid, ...accountantIds];
-
-    const transactionsQuery = query(
-      collection(db, "transactions"),
-      where("userId", "in", idsList)
-    );
-    const transactionsSnapshot = await getDocs(transactionsQuery);
-    transactionsData = transactionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } else {
-    // For accountants, fetch only their own transactions.
-    const transactionsQuery = query(
-      collection(db, "transactions"),
-      where("userId", "==", currentUser.uid)
-    );
-    const transactionsSnapshot = await getDocs(transactionsQuery);
-    transactionsData = transactionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-
+  // For company owners, fetch only the accountants associated with this owner.
   let usersData = [];
   if (userData.role === 'owner') {
-    const usersSnapshot = await getDocs(collection(db, "users"));
-    usersData = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const accountantsQuery = query(
+      collection(db, "users"),
+      where("role", "==", "accountant"),
+      where("ownerId", "==", currentUser.uid) // This field must be set when accountants register
+    );
+    const accountantsSnapshot = await getDocs(accountantsQuery);
+    usersData = accountantsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log("Fetched accountants for owner:", usersData);
   }
 
   return { userData, transactionsData, usersData };

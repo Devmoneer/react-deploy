@@ -1,30 +1,29 @@
 import React from 'react';
-import { FiPieChart, FiDollarSign, FiFileText, FiUser, FiSettings,  } from 'react-icons/fi';
+import { FiPieChart, FiDollarSign, FiFileText, FiSettings } from 'react-icons/fi';
 import { FaUserShield, FaUserTie } from 'react-icons/fa';
 import { translations } from './utils/translations';
 
-const Sidebar = ({ userData, language, setLanguage, activeTab, setActiveTab }) => {
+const Sidebar = ({
+  userData,
+  language,
+  setLanguage,
+  activeTab,
+  setActiveTab,
+}) => {
   const t = translations[language];
+  const languageOptions = [
+    { code: 'english', name: 'English' },
+    { code: 'arabic', name: 'العربية' },
+    { code: 'sorani', name: 'سۆرانی' },
+    { code: 'badini', name: 'بادینی' }
+  ];
 
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h2>ACCDPU</h2>
+        <img src="images/favicon.png" alt="logopacc" className="logo-accdpu" width={80} />
         <p className="version-text">Version App 0.0.1</p>
-        <div className="language-selector">
-          <button 
-            onClick={() => setLanguage('english')} 
-            className={language === 'english' ? 'active' : ''}
-          >EN</button>
-          <button 
-            onClick={() => setLanguage('arabic')} 
-            className={language === 'arabic' ? 'active' : ''}
-          >AR</button>
-          <button 
-            onClick={() => setLanguage('sorani')} 
-            className={language === 'sorani' ? 'active' : ''}
-          >KU</button>
-        </div>
+        {/* Removed the top language selector */}
       </div>
       
       <nav>
@@ -46,15 +45,6 @@ const Sidebar = ({ userData, language, setLanguage, activeTab, setActiveTab }) =
         >
           <FiFileText /> {t.reports}
         </button>
-        
-        {userData?.role === 'owner' && (
-          <button 
-            className={activeTab === 'users' ? 'active' : ''} 
-            onClick={() => setActiveTab('users')}
-          >
-            <FiUser /> {t.manageUsers}
-          </button>
-        )}
         <button 
           className={activeTab === 'settings' ? 'active' : ''} 
           onClick={() => setActiveTab('settings')}
@@ -63,13 +53,27 @@ const Sidebar = ({ userData, language, setLanguage, activeTab, setActiveTab }) =
         </button>
       </nav>
       
+      <div className="language-selector">
+        {languageOptions.map((lang) => (
+          <button
+            key={lang.code}
+            onClick={() => setLanguage(lang.code)}
+            className={language === lang.code ? 'active' : ''}
+          >
+            {lang.name}
+          </button>
+        ))}
+      </div>
+      
       <div className="user-profile">
         <div className="user-info">
           <div className="user-avatar">
             {userData?.role === 'owner' ? <FaUserShield /> : <FaUserTie />}
           </div>
           <div>
-            <div className="username">{userData?.username || t.loading}</div>
+            <div className="username">
+              {userData?.username || t.loading}
+            </div>
             <div className="user-role">
               {t.role}: {userData ? (userData.role === 'owner' ? t.owner : t.accountant) : t.loading}
             </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { auth } from '../../../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import { FiEye, FiEyeOff } from 'react-icons/fi';  // <-- Added icons import
 import '../../../styles/App.css';
 
 function Login() {
@@ -10,6 +11,7 @@ function Login() {
     const [error, setError] = useState('');
     const [language, setLanguage] = useState('english');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
     const translations = {
@@ -127,12 +129,31 @@ function Login() {
 
                         <div className="form-group">
                             <label>{t.password}</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                required />
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="••••••••"
+                                    required
+                                    style={{ paddingRight: '2.5rem' }}  // Provide space for the icon
+                                />
+                                <button 
+                                  type="button"
+                                  onClick={() => setShowPassword(prev => !prev)}
+                                  style={{
+                                      position: 'absolute',
+                                      right: '1rem',
+                                      top: '53%',
+                                      transform: 'translateY(-50%)',
+                                      background: 'none',
+                                      border: 'none',
+                                      cursor: 'pointer'
+                                  }}
+                                >
+                                  {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                                </button>
+                            </div>
                         </div>
 
                         <button 
@@ -176,4 +197,4 @@ function Login() {
     );
 }
 
-export default Login
+export default Login;

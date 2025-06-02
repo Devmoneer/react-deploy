@@ -12,11 +12,11 @@ const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const [accountingData, setAccountingData] = useState([]);
   const [users, setUsers] = useState([]);
-  const [language, setLanguage] = useState('english');
+  const [language, setLanguage] = useState('english'); // global language state
   const [activeTab, setActiveTab] = useState('dashboard');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [dataLoading, setDataLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true); 
 
   useEffect(() => {
     if (!currentUser) {
@@ -49,7 +49,7 @@ const Dashboard = () => {
   }, [currentUser]);
 
   return (
-    <div className={`dashboard-container ${userData?.role === 'owner' ? 'owner-dashboard' : 'accountant-dashboard'}`}>
+    <div className={`dashboard-container ${userData?.role === 'owner' ? 'owner-dashboard' : 'accountant-dashboard'} ${(language === 'arabic' || language === 'sorani' || language === 'badini') ? 'rtl' : ''}`}>
       <Sidebar 
         userData={userData}
         language={language}
@@ -57,7 +57,6 @@ const Dashboard = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
-      
       <MainContent
         userData={userData}
         accountingData={accountingData}
@@ -71,7 +70,7 @@ const Dashboard = () => {
         setLoading={setLoading}
         setAccountingData={setAccountingData}
         setUsers={setUsers}
-        setUserData={setUserData}  // New prop for settings
+        setUserData={setUserData}
       />
     </div>
   );

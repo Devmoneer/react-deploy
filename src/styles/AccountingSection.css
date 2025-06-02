@@ -1,0 +1,26 @@
+/* Container for the input */
+.search-container {
+    margin-bottom: 1rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Style for the input field */
+.search-container input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background-color: #f8f9fa;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+/* On focus, change border and add subtle shadow */
+.search-container input:focus {
+    border-color: #ccc;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+    background-color: #fff;
+    outline: none;
+}
